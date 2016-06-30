@@ -62,6 +62,6 @@ int main() {
     CMAES cmaes(&toy_data, &toy_model);
     dvec x0(6, arma::fill::zeros);
     double sigma0 = 20.0;
-    cmaes.fmin(x0, sigma0, 0);
+    cmaes.fmin(x0, sigma0, 9);
     return 0;
 }

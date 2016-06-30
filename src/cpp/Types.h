@@ -2,7 +2,6 @@
 #define LIBCMAES_TYPES_H
 
 #include <armadillo>
-//#include <eigen3>
 
 enum StorageType {
     column_major = 0,

@@ -23,6 +23,7 @@ void CMAES::optimize() {
         assign_new_mean();
         update_best();
         cummulative_stepsize_adaption();
+        update_weights();
         update_cov_matrix();
         update_sigma();
         eigendecomposition();
@@ -51,15 +52,18 @@ void CMAES::rank_and_sort() {
         era.f_offsprings[i] = cost_function(era.params_offsprings[i]);
     }
     // <-
-
     // -> sorting
     std::iota(era.keys_offsprings.begin(), era.keys_offsprings.end(), 0);
     std::sort(era.keys_offsprings.begin(), era.keys_offsprings.end(),
               [&](std::size_t idx1, std::size_t idx2) { return era.f_offsprings[idx1] < era.f_offsprings[idx2]; });
     for (int i = 0; i < era.n_parents; i++) {
         int idx_new = era.keys_offsprings[i];
-        era.y_parents[i] = era.y_offsprings[idx_new];
-        era.params_parents[i] = era.params_offsprings[idx_new];
+        era.y_parents_ranked[i] = era.y_offsprings[idx_new];
+        era.params_parents_ranked[i] = era.params_offsprings[idx_new];
+    }
+    for (int i = 0; i < era.n_offsprings; i++) {
+        int idx_new = era.keys_offsprings[i];
+        era.y_offsprings_ranked[i] = era.y_offsprings[idx_new];
     }
     // <-
 }
@@ -77,9 +81,10 @@ void CMAES::assign_new_mean() {
     era.params_mean.zeros();
     era.y_mean.zeros();
     for (int i = 0; i < era.n_parents; i++) {
-        era.y_mean += era.y_parents[i] * era.w_parents[i];
-        era.params_mean += era.params_parents[i] * era.w_parents[i];
+        era.y_mean += era.y_parents_ranked[i] * era.w[i];
+        era.params_mean += era.params_parents_ranked[i] * era.w[i];
     }
+    //std::cout << era.params_mean << std::endl;
 }
 
 void CMAES::cummulative_stepsize_adaption() {
@@ -98,23 +103,32 @@ void CMAES::cummulative_stepsize_adaption() {
     // <-
 }
 
+void CMAES::update_weights() {
+    for (int i = 0; i < era.n_offsprings; i++) {
+        if (era.w[i] < 0) {
+            era.w_var[i] =
+                    era.w[i] * era.n_params / std::pow(arma::norm(era.C_invsqrt * era.y_offsprings_ranked[i]), 2);
+        }
+    }
+}
+
 void CMAES::update_sigma() {
     era.sigma *= std::exp(era.c_s / era.d_s * (arma::norm(era.p_s) / era.chi - 1.0));
 }
 
 void CMAES::update_cov_matrix() {
     double h1 = (1 - era.h_sig) * era.c_c * (2.0 - era.c_c);
-    dmat h2(era.n_params, era.n_params);
-    h2.zeros();
-    for (int i = 0; i < era.n_parents; i++) {
-        h2 += era.w_parents[i] * era.y_parents[i] * era.y_parents[i].t();
+    dmat h2(era.n_params, era.n_params, arma::fill::zeros);
+    for (int i = 0; i < era.n_offsprings; i++) {
+        h2 += era.w_var[i] * era.y_offsprings_ranked[i] * era.y_offsprings_ranked[i].t();
     }
-    era.C = (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * arma::sum(era.w_parents)) * era.C
+    era.C = (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * arma::sum(era.w)) * era.C
             + era.c_1 * era.p_c * era.p_c.t() + era.c_mu * h2;
 }
 
 void CMAES::eigendecomposition() {
-    era.C = arma::symmatu(era.C);
+    //std::cout << era.C << std::endl;
+    //era.C = arma::symmatu(era.C);
     arma::eig_sym(era.C_eigvals, era.B, era.C);
     dmat D2 = arma::diagmat(era.C_eigvals);
     era.D = arma::sqrt(D2);
@@ -141,7 +155,7 @@ void CMAES::plot() {
     gp << "plot '-' with lines title 'model', " << "'-' with points pt 7 title 'data'\n";
     gp.send1d(boost::make_tuple(data->x, model->y[0]));
     gp.send1d(boost::make_tuple(data->x, data->y[0]));
-    std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.4e9)));
+    std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.2e9)));
 }
 
 void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
@@ -168,6 +182,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
         optimize();
         era.params_mean = params_best;
         era.sigma = sigma0;
+        std::cout << "params_best: " << params_best.t() << std::endl;
         std::cout << "i_run: " << (i_run + 1) << " / " << (n_restarts + 1) << " completed." << std::endl;
     }
     // <-

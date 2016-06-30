@@ -6,15 +6,17 @@ void Parameters::init(int n_offsprings_, int n_params_) {
     n_params = n_params_;
     i_iteration = 0;
     i_evals = 0;
-    //-> weights
-    w_parents.resize(n_parents);
-    double w_sum = 0.0, w_sq = 0.0;
-    for (int i = 0; i < n_parents; i++) {
-        w_parents[i] = std::log(n_parents + 1) - std::log(i + 1);
-        w_sum += w_parents[i];
-        w_sq += w_parents[i] * w_parents[i];
+
+    //-> weights tmp
+    dvec w_tmp(n_offsprings);
+    double w_neg_sum = 0.0, w_pos_sum = 0.0;
+    for (int i = 0; i < n_offsprings; i++) {
+        w_tmp[i] = std::log((n_offsprings + 1.0) / 2.0) - std::log(i + 1);
+        if (w_tmp[i] >= 0)
+            w_pos_sum += w_tmp[i];
+        else
+            w_neg_sum += w_tmp[i];
     }
-    w_parents /= w_sum;
     // <-
 
     // -> vectors
@@ -30,45 +32,79 @@ void Parameters::init(int n_offsprings_, int n_params_) {
     //-> vector of vectors
     params_offsprings.resize(n_offsprings);
     y_offsprings.resize(n_offsprings);
+    y_offsprings_ranked.resize(n_offsprings);
     z_offsprings.resize(n_offsprings);
     for (int i = 0; i < n_offsprings; i++) {
         params_offsprings[i].resize(n_params);
         y_offsprings[i].resize(n_params);
+        y_offsprings_ranked[i].resize(n_params);
         z_offsprings[i].resize(n_params);
     }
 
-    params_parents.resize(n_parents);
-    y_parents.resize(n_parents);
+    params_parents_ranked.resize(n_parents);
+    y_parents_ranked.resize(n_parents);
     for (int i = 0; i < n_parents; i++) {
-        params_parents[i].resize(n_params);
-        y_parents[i].resize(n_params);
+        params_parents_ranked[i].resize(n_params);
+        y_parents_ranked[i].resize(n_params);
     }
     // <-
 
-    n_parents_eff = w_sum * w_sum / w_sq;
-    c_s = (n_parents_eff + 2.0) / (n_params + n_parents_eff + 5.0);
-    c_c = (4.0 + n_parents_eff / n_params) / (n_params + 4.0 + 2.0 * n_parents_eff / n_params);
+    double w_sum_parent = 0.0, w_sq_sum_parent = 0.0;
+    for (int i = 0; i < n_parents; i++) {
+        w_sum_parent += w_tmp[i];
+        w_sq_sum_parent += w_tmp[i] * w_tmp[i];
+    }
+    n_mu_eff = w_sum_parent * w_sum_parent / w_sq_sum_parent;
 
-    c_1 = 2.0 / (std::pow((n_params + 1.3), 2) + n_parents_eff);
-    c_mu = 2.0 * (n_parents_eff - 2.0 + 1.0 / n_parents_eff) / (std::pow(n_params + 2.0, 2) + n_parents_eff);
+    double w_sum_neg = 0.0, w_sq_sum_neg = 0.0;
+    for (int i = n_parents; i < n_offsprings; i++) {
+        w_sum_neg += w_tmp[i];
+        w_sq_sum_neg += w_tmp[i] * w_tmp[i];
+    }
+
+    n_mu_eff_neg = w_sum_neg * w_sum_neg / w_sq_sum_neg;
+
+    c_m = 1.0;
+    c_s = (n_mu_eff + 2.0) / (n_params + n_mu_eff + 5.0);
+    c_c = (4.0 + n_mu_eff / n_params) / (n_params + 4.0 + 2.0 * n_mu_eff / n_params);
+    c_1 = 2.0 / (std::pow((n_params + 1.3), 2) + n_mu_eff);
+    c_mu = 2.0 * (n_mu_eff - 2.0 + 1.0 / n_mu_eff) / (std::pow(n_params + 2.0, 2) + n_mu_eff);
     c_mu = std::min(1.0 - c_1, c_mu);
 
-    d_s = 1.0 + c_s + 2.0 * std::max(0.0, std::sqrt((n_parents_eff - 1) / (n_params + 1)) - 1);
-
-    // constants used in covariance update.
-    p_s_fact = std::sqrt(c_s * (2.0 - c_s) * n_parents_eff);
-    p_c_fact = std::sqrt(c_c * (2.0 - c_c) * n_parents_eff);
+    d_s = 1.0 + c_s + 2.0 * std::max(0.0, std::sqrt((n_mu_eff - 1) / (n_params + 1)) - 1);
 
     chi = std::sqrt(n_params) * (1.0 - 1.0 / (4.0 * n_params) + 1.0 / (21.0 * n_params * n_params));
 
+    // constants used in covariance update.
+    p_s_fact = std::sqrt(c_s * (2.0 - c_s) * n_mu_eff);
+    p_c_fact = std::sqrt(c_c * (2.0 - c_c) * n_mu_eff);
+
+    // -> parameter for active cma-es
+    a_mu = 1.0 + c_1 / c_mu;
+    a_mueff = 1.0 + 2 * n_mu_eff;
+    a_posdef = (1.0 - c_1 - c_mu) / (n_params * c_mu);
+    // <-
+
+    // -> weights
+    double a_min = std::min(std::min(a_mu, a_mueff), a_posdef);
+    w.resize(n_offsprings);
+    w_var.resize(n_offsprings);
+    for (int i = 0; i < n_offsprings; i++) {
+        if (w_tmp[i] >= 0)
+            w[i] = w_tmp[i] / w_pos_sum;
+        else
+            w[i] = a_min * w_tmp[i] / std::abs(w_neg_sum);
+    }
+    w_var = w;
+    // <-
+
+
     // -> matrices
     C.resize(n_params, n_params);
-    C_sym.resize(n_params, n_params);
     C_invsqrt.resize(n_params, n_params);
     B.resize(n_params, n_params);
     D.resize(n_params, n_params);
     C.eye();
-    C_sym.eye();
     C_invsqrt.eye();
     B.eye();
     D.eye();

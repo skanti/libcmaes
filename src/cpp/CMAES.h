@@ -24,6 +24,8 @@ public:
 
     void cummulative_stepsize_adaption();
 
+    void update_weights();
+
     void update_sigma();
 
     void update_cov_matrix();
@@ -61,7 +63,7 @@ public:
 
     // options
     const int n_iteration_max = (int) (1e6);
-    const int n_interval_plot = 100;
+    const int n_interval_plot = 50;
     bool should_stop;
 
     // plotting
