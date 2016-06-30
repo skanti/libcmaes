@@ -144,7 +144,8 @@ void CMAES::plot() {
     std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.4e9)));
 }
 
-void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts) {
+void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
+    mt.seed(seed);
     // -> first guess
     x0.resize(model->n_params);
     x0 = x0_;

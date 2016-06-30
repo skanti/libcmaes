@@ -61,14 +61,7 @@ int main() {
 
     CMAES cmaes(&toy_data, &toy_model);
     dvec x0(6, arma::fill::zeros);
-    double sigma0 = 50.0;
-    cmaes.fmin(x0, sigma0, 9);
-    /*
-    std::vector<double> p1 = {90.0, 0.5, 1.5, -3.5, 1.2, 0.9};
-    dvec params(6);
-    std::copy(p1.begin(), p1.end(), params.begin());
-    toy_model.evaluate(toy_data.x, params);
-    toy_model.write_data("./out.dat", toy_data.x, params);
-    */
+    double sigma0 = 20.0;
+    cmaes.fmin(x0, sigma0, 0);
     return 0;
 }

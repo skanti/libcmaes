@@ -12,7 +12,7 @@ class CMAES {
 public:
     CMAES(Data *data_, Model *model_);
 
-    void fmin(dvec &x0_, double sigma0_, int n_restarts);
+    void fmin(dvec &x0_, double sigma0_, int n_restarts, int seed = 999);
 
     void prepare_optimization();
 
