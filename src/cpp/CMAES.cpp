@@ -147,14 +147,18 @@ void CMAES::check_cov_matrix_condition() {
 
 double CMAES::cost_function(dvec &params) {
     model->evaluate(data->x, params);
-    return arma::norm(model->y[0] - data->y[0]);
+    double cost = 0.0;
+    for (int i = 0; i < model->dim; i++)
+        cost += arma::norm(model->y[i] - data->y[i]);
+    return cost;
 }
 
 void CMAES::plot() {
     cost_function(era.params_mean);
+    gp << "set yrange [] reverse\n";
     gp << "plot '-' with lines title 'model', " << "'-' with points pt 7 title 'data'\n";
-    gp.send1d(boost::make_tuple(data->x, model->y[0]));
-    gp.send1d(boost::make_tuple(data->x, data->y[0]));
+    gp.send1d(boost::make_tuple(model->y[0], model->y[1]));
+    gp.send1d(boost::make_tuple(data->y[0], data->y[1]));
     std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.2e9)));
 }
 

@@ -5,7 +5,7 @@
 #include <vector>
 
 struct Data {
-    int n, dim;
+    int n_data, dim;
     dvec x; // <- 1-D array
     std::vector<dvec> y; // <- N-D array
 
