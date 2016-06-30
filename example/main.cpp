@@ -60,10 +60,9 @@ int main() {
     // <-
 
     CMAES cmaes(&toy_data, &toy_model);
-    dvec x0(6);
-    std::fill(x0.begin(), x0.end(), 0.0);
+    dvec x0(6, arma::fill::zeros);
     double sigma0 = 50.0;
-    cmaes.fmin(x0, sigma0);
+    cmaes.fmin(x0, sigma0, 9);
     /*
     std::vector<double> p1 = {90.0, 0.5, 1.5, -3.5, 1.2, 0.9};
     dvec params(6);
