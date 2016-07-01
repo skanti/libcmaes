@@ -69,10 +69,10 @@ void CMAES::rank_and_sort() {
 }
 
 void CMAES::update_best() {
-    double f_mean = cost_function(era.params_mean);
-    if (!std::isnan(f_mean) && f_mean < f_best) {
-        params_best = era.params_mean;
-        f_best = f_mean;
+    double f_cand = cost_function(era.params_parents_ranked[0]);
+    if (!std::isnan(f_cand) && f_cand < f_best) {
+        params_best = era.params_parents_ranked[0];
+        f_best = f_cand;
     }
 }
 
@@ -106,8 +106,8 @@ void CMAES::cummulative_stepsize_adaption() {
 void CMAES::update_weights() {
     for (int i = 0; i < era.n_offsprings; i++) {
         if (era.w[i] < 0) {
-            era.w_var[i] =
-                    era.w[i] * era.n_params / std::pow(arma::norm(era.C_invsqrt * era.y_offsprings_ranked[i]), 2);
+            double h = arma::norm(era.C_invsqrt * era.y_offsprings_ranked[i]);
+            era.w_var[i] = era.w[i] * era.n_params / (h * h);
         }
     }
 }
@@ -156,9 +156,9 @@ double CMAES::cost_function(dvec &params) {
 void CMAES::plot() {
     cost_function(era.params_mean);
     gp << "set yrange [] reverse\n";
-    gp << "plot '-' with lines title 'model', " << "'-' with points pt 7 title 'data'\n";
-    gp.send1d(boost::make_tuple(model->y[0], model->y[1]));
+    gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
     gp.send1d(boost::make_tuple(data->y[0], data->y[1]));
+    gp.send1d(boost::make_tuple(model->y[0], model->y[1]));
     std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.2e9)));
 }
 

@@ -63,7 +63,7 @@ public:
 
     // options
     const int n_iteration_max = (int) (1e6);
-    const int n_interval_plot = 50;
+    const int n_interval_plot = 200;
     bool should_stop;
 
     // plotting
