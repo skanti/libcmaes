@@ -79,7 +79,7 @@ int main() {
     // <-
 
     CMAES cmaes(&toy_data, &toy_model);
-    dvec x0(6, arma::fill::zeros);
+    dvec x0(toy_model.n_params, arma::fill::zeros);
     double sigma0 = 1.0;
     cmaes.fmin(x0, sigma0, 9);
 

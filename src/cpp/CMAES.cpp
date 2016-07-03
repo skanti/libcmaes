@@ -2,17 +2,37 @@
 #include <thread>
 
 CMAES::CMAES(Data *data_, Model *model_)
-        : data(data_), model(model_), dist_normal() {
+        : data(data_), model(model_), dist_normal_real() {
 };
 
 void CMAES::prepare_optimization() {
-    int n_params = model->n_params;
-    if (i_run == 0)
-        n_offsprings = (int) (4 + 3 * std::log(n_params));
-    else
-        n_offsprings *= fac_inc_pop;
-
-    era.init(n_offsprings, n_params);
+    dvec params_mean;
+    double sigma;
+    if (i_run == 0) {
+        n_offsprings0 = (int) (4 + 3 * std::log(n_params));
+        n_offsprings = n_offsprings0;
+        n_offsprings_l = n_offsprings0;
+        params_mean = x0;
+        sigma = sigma0;
+    } else {
+        int n_regime1 = n_offsprings0 * (1 << i_run);
+        double ur2 = std::pow(dist_uniform_real(mt), 2.0);
+        int n_regime2 = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
+        double us = dist_uniform_real(mt);
+        double sigma_regime2 = sigma0 * 2.0 * std::pow(10, -2.0 * us);
+        if (n_regime1 <= n_regime2) {
+            n_offsprings = n_regime1;
+            n_offsprings_l = n_regime1;
+            sigma = sigma0;
+            std::cout << "regime 1" << std::endl;
+        } else {
+            n_offsprings = n_regime2;
+            sigma = sigma_regime2;
+            std::cout << "regime 2" << std::endl;
+        }
+        params_mean = params_best;
+    }
+    era.init(n_offsprings, n_params, params_mean, sigma);
 }
 
 void CMAES::optimize() {
@@ -37,7 +57,7 @@ void CMAES::optimize() {
 
 void CMAES::sample_offsprings() {
     for (dvec &zo : era.z_offsprings)
-        std::generate(zo.begin(), zo.end(), [&]() { return dist_normal(mt); });
+        std::generate(zo.begin(), zo.end(), [&]() { return dist_normal_real(mt); });
 
     dmat BD = era.B * era.D;
     for (int i = 0; i < era.n_offsprings; i++) {
@@ -51,6 +71,7 @@ void CMAES::rank_and_sort() {
     for (int i = 0; i < era.n_offsprings; i++) {
         era.f_offsprings[i] = cost_function(era.params_offsprings[i]);
     }
+    n_func_evals += era.n_offsprings;
     // <-
     // -> sorting
     std::iota(era.keys_offsprings.begin(), era.keys_offsprings.end(), 0);
@@ -164,28 +185,26 @@ void CMAES::plot() {
 
 void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     mt.seed(seed);
+    n_params = model->n_params;
     // -> first guess
-    x0.resize(model->n_params);
+    x0.resize(n_params);
     x0 = x0_;
     sigma0 = sigma0_;
     // <-
 
     // -> prepare fmin
-    params_best.resize(model->n_params);
+    params_best.resize(n_params);
     params_best = x0;
     f_best = std::isnan(cost_function(params_best)) ? std::numeric_limits<double>::infinity() : cost_function(
             params_best);
     fac_inc_pop = 2.0;
+    n_func_evals = 0;
     // <-
 
     // -> runs
-    era.params_mean = x0;
-    era.sigma = sigma0;
     for (i_run = 0; i_run < n_restarts + 1; i_run++) {
         prepare_optimization();
         optimize();
-        era.params_mean = params_best;
-        era.sigma = sigma0;
         std::cout << "params_best: " << params_best.t() << std::endl;
         std::cout << "i_run: " << (i_run + 1) << " / " << (n_restarts + 1) << " completed." << std::endl;
     }

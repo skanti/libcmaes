@@ -46,9 +46,14 @@ public:
     Model *model;
     Parameters era;
 
-    // initial user guesses
+    // initial values
     dvec x0;
     double sigma0;
+    int n_offsprings0;
+    int n_params;
+
+    // bipop
+    int n_offsprings_l;
 
     // restarts
     int i_run;
@@ -57,9 +62,13 @@ public:
     double fac_inc_pop;
     int n_offsprings;
 
-    //
+    // cost
+    int n_func_evals;
+
+    // random
     std::mt19937 mt;
-    std::normal_distribution<double> dist_normal;
+    std::normal_distribution<double> dist_normal_real;
+    std::uniform_real_distribution<double> dist_uniform_real;
 
     // options
     const int n_iteration_max = (int) (1e6);

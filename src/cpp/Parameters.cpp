@@ -1,11 +1,10 @@
 #include "Parameters.h"
 
-void Parameters::init(int n_offsprings_, int n_params_) {
+void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, double &sigma_) {
     n_offsprings = n_offsprings_;
     n_parents = n_offsprings / 2;
     n_params = n_params_;
     i_iteration = 0;
-    i_evals = 0;
 
     //-> weights tmp
     dvec w_tmp(n_offsprings);
@@ -22,8 +21,11 @@ void Parameters::init(int n_offsprings_, int n_params_) {
     // -> vectors
     f_offsprings.resize(n_offsprings);
     p_s.resize(n_params);
+    p_s.zeros();
     p_c.resize(n_params);
+    p_c.zeros();
     params_mean.resize(n_params);
+    params_mean = params_mean_;
     params_mean_old.resize(n_params);
     y_mean.resize(n_params);
     keys_offsprings.resize(n_offsprings);
@@ -62,8 +64,6 @@ void Parameters::init(int n_offsprings_, int n_params_) {
         w_sq_sum_neg += w_tmp[i] * w_tmp[i];
     }
 
-    n_mu_eff_neg = w_sum_neg * w_sum_neg / w_sq_sum_neg;
-
     c_m = 1.0;
     c_s = (n_mu_eff + 2.0) / (n_params + n_mu_eff + 5.0);
     c_c = (4.0 + n_mu_eff / n_params) / (n_params + 4.0 + 2.0 * n_mu_eff / n_params);
@@ -98,6 +98,7 @@ void Parameters::init(int n_offsprings_, int n_params_) {
     w_var = w;
     // <-
 
+    sigma = sigma_;
 
     // -> matrices
     C.resize(n_params, n_params);

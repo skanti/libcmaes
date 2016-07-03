@@ -8,15 +8,13 @@
 
 struct Parameters {
 
-    void init(int n_offsprings_, int n_params_);
+    void init(int n_offsprings_, int n_params_, dvec &params_mean_, double &sigma_);
 
     int n_offsprings;
     int n_params;
     int n_parents;
-    int i_evals;
     int i_iteration;
     double n_mu_eff;
-    double n_mu_eff_neg;
     std::vector<dvec> params_offsprings;
     std::vector<dvec> params_parents_ranked;
     std::vector<dvec> z_offsprings;
