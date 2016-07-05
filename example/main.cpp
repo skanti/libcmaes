@@ -79,9 +79,9 @@ int main() {
     // <-
 
     CMAES cmaes(&toy_data, &toy_model);
-    dvec x0(toy_model.n_params, arma::fill::zeros);
+    dvec x0(toy_model.n_params, arma::fill::ones);
     double sigma0 = 1.0;
-    cmaes.fmin(x0, sigma0, 7);
+    cmaes.fmin(x0, sigma0, 7, 999);
 
     // plotting
     /*

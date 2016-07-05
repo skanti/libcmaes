@@ -20,7 +20,7 @@ void CMAES::prepare_optimization() {
         int n_regime2 = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
         double us = dist_uniform_real(mt);
         double sigma_regime2 = sigma0 * 2.0 * std::pow(10, -2.0 * us);
-        if (n_regime1 <= n_regime2) {
+        if (0 <= 2) {
             n_offsprings = n_regime1;
             n_offsprings_l = n_regime1;
             sigma = sigma0;
@@ -42,14 +42,15 @@ void CMAES::optimize() {
         rank_and_sort();
         assign_new_mean();
         update_best();
+        eigendecomposition();
         cummulative_stepsize_adaption();
         update_weights();
         update_cov_matrix();
         update_sigma();
-        eigendecomposition();
         check_cov_matrix_condition();
-        if (era.i_iteration % n_interval_plot == 0)
+        if (era.i_iteration % n_interval_plot == 0) {
             plot();
+        }
 
         era.i_iteration++;
     }
