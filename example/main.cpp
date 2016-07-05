@@ -39,10 +39,10 @@ struct ToyModel1 : public Model {
         std::complex<double> jc = std::complex<double>(0, 1);
         for (int i = 0; i < n_model; i++) {
             // L + Rs + RQ1 + RQ2 + RQ3
-            std::complex<double> r = jc * x[i] * params[0] * 1e-7 + params[1]
+            std::complex<double> r = jc * x[i] * params[0] + params[1]
                                      + params[2] / (1.0 + std::pow(jc * x[i] * params[3], params[4]))
-                                     + params[5] / (1.0 + std::pow(jc * x[i] * params[6] * 1e-4, params[7]))
-                                     + params[8] / (1.0 + std::pow(jc * x[i] * params[9] * 1e-4, params[10]));
+                                     + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]))
+                                     + params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
             y[0][i] = r.real();
             y[1][i] = r.imag();
         }
@@ -81,7 +81,7 @@ int main() {
     CMAES cmaes(&toy_data, &toy_model);
     dvec x0(toy_model.n_params, arma::fill::zeros);
     double sigma0 = 1.0;
-    cmaes.fmin(x0, sigma0, 9);
+    cmaes.fmin(x0, sigma0, 7);
 
     // plotting
     /*

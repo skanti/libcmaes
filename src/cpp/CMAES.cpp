@@ -169,8 +169,10 @@ void CMAES::check_cov_matrix_condition() {
 double CMAES::cost_function(dvec &params) {
     model->evaluate(data->x, params);
     double cost = 0.0;
-    for (int i = 0; i < model->dim; i++)
-        cost += arma::norm(model->y[i] - data->y[i]);
+    for (int i = 0; i < model->dim; i++) {
+        dvec r = model->y[i] - data->y[i];
+        cost += arma::dot(r, r);
+    }
     return cost;
 }
 
