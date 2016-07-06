@@ -123,8 +123,8 @@ void CMAES::eigendecomposition() {
     //std::cout << era.C << std::endl;
     //era.C = arma::symmatu(era.C);
     arma::eig_sym(era.C_eigvals, era.B, era.C);
-    dmat D2 = arma::diagmat(era.C_eigvals);
-    era.D = arma::sqrt(D2);
+    dvec D2 = arma::sqrt(era.C_eigvals);
+    era.D = arma::diagmat(D2);
     era.C_invsqrt = era.B * arma::inv(era.D) * era.B.t();
 }
 
@@ -213,7 +213,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> plot final result
     cost_function(params_best);
     plot();
-    std::cout << params_best << std::endl;
+    std::cout << "f_best: " << f_best << " params_best: " << params_best.t() << std::endl;
     // <-
 }
 
