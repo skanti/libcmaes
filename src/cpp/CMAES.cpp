@@ -14,10 +14,10 @@ void CMAES::optimize() {
         rank_and_sort();
         assign_new_mean();
         update_best();
-        eigendecomposition();
         cummulative_stepsize_adaption();
         update_weights();
         update_cov_matrix();
+        eigendecomposition();
         update_sigma();
         stopping_criteria();
         if (era.i_iteration % n_interval_plot == 0) {
@@ -142,16 +142,6 @@ void CMAES::stopping_criteria() {
 
         should_stop = true;
     }
-
-
-    if (era.C_eigvals[era.n_params - 1] / era.C_eigvals[0] > 1e14) {
-        std::cout << "stopping criteria occured: bad covariance condition." << std::endl;
-        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
-
-        should_stop = true;
-    }
-
-
 }
 
 double CMAES::cost_function(dvec &params) {
