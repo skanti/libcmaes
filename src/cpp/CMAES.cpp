@@ -19,7 +19,7 @@ void CMAES::optimize() {
         update_sigma();
         check_cov_matrix_condition();
         if (era.i_iteration % n_interval_plot == 0) {
-            plot();
+            plot(era.params_mean);
         }
 
         era.i_iteration++;
@@ -77,7 +77,6 @@ void CMAES::assign_new_mean() {
         era.y_mean += era.y_parents_ranked[i] * era.w[i];
         era.params_mean += era.params_parents_ranked[i] * era.w[i];
     }
-    //std::cout << era.params_mean << std::endl;
 }
 
 void CMAES::cummulative_stepsize_adaption() {
@@ -148,8 +147,8 @@ double CMAES::cost_function(dvec &params) {
     return cost;
 }
 
-void CMAES::plot() {
-    cost_function(era.params_mean);
+void CMAES::plot(dvec &params) {
+    cost_function(params);
     gp << "set yrange [] reverse\n";
     gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
     gp.send1d(boost::make_tuple(data->y[0], data->y[1]));
@@ -212,7 +211,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
 
     // -> plot final result
     cost_function(params_best);
-    plot();
+    plot(params_best);
     std::cout << "f_best: " << f_best << " params_best: " << params_best.t() << std::endl;
     // <-
 }

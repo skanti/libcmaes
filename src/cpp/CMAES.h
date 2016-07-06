@@ -36,7 +36,7 @@ public:
 
     double cost_function(dvec &params);
 
-    void plot();
+    void plot(dvec &params);
 
     void optimize();
 
