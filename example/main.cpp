@@ -21,8 +21,8 @@ struct ToyData1 : public Data {
             // L + Rs + RQ1 + RQ2 + RQ3
             std::complex<double> r = jc * x[i] * params[0] + params[1]
                                      + params[2] / (1.0 + std::pow(jc * x[i] * params[3], params[4]))
-                                     + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]))
-                                     + params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
+                                     + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]));
+            //+ params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
             y[0][i] = r.real();
             y[1][i] = r.imag();
         }
@@ -32,17 +32,17 @@ struct ToyData1 : public Data {
 
 struct ToyModel1 : public Model {
     ToyModel1(int n_data_, int dim_) : Model(n_data_, dim_) {
-        n_params = 11;
+        n_params = 8;
     };
 
     void evaluate(dvec &x, dvec &params) {
         std::complex<double> jc = std::complex<double>(0, 1);
         for (int i = 0; i < n_model; i++) {
             // L + Rs + RQ1 + RQ2 + RQ3
-            std::complex<double> r = jc * x[i] * params[0] + params[1]
+            std::complex<double> r = jc * x[i] * params[0] * 1e-7 + params[1]
                                      + params[2] / (1.0 + std::pow(jc * x[i] * params[3], params[4]))
-                                     + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]))
-                                     + params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
+                                     + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]));
+            //+ params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
             y[0][i] = r.real();
             y[1][i] = r.imag();
         }

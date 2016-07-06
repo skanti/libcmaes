@@ -17,6 +17,14 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
         else
             w_neg_sum += w_tmp[i];
     }
+
+
+    double w_sum_parent = 0.0, w_sq_sum_parent = 0.0;
+    for (int i = 0; i < n_parents; i++) {
+        w_sum_parent += w_tmp[i];
+        w_sq_sum_parent += w_tmp[i] * w_tmp[i];
+    }
+    n_mu_eff = w_sum_parent * w_sum_parent / w_sq_sum_parent;
     // <-
 
     // -> vectors
@@ -30,6 +38,7 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     params_mean_old.resize(n_params);
     y_mean.resize(n_params);
     keys_offsprings.resize(n_offsprings);
+    C_eigvals.resize(n_params);
     // <-
 
     //-> vector of vectors
@@ -51,19 +60,6 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
         y_parents_ranked[i].resize(n_params);
     }
     // <-
-
-    double w_sum_parent = 0.0, w_sq_sum_parent = 0.0;
-    for (int i = 0; i < n_parents; i++) {
-        w_sum_parent += w_tmp[i];
-        w_sq_sum_parent += w_tmp[i] * w_tmp[i];
-    }
-    n_mu_eff = w_sum_parent * w_sum_parent / w_sq_sum_parent;
-
-    double w_sum_neg = 0.0, w_sq_sum_neg = 0.0;
-    for (int i = n_parents; i < n_offsprings; i++) {
-        w_sum_neg += w_tmp[i];
-        w_sq_sum_neg += w_tmp[i] * w_tmp[i];
-    }
 
     c_m = 1.0;
     c_s = (n_mu_eff + 2.0) / (n_params + n_mu_eff + 5.0);

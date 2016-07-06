@@ -2,10 +2,12 @@
 #include <thread>
 
 CMAES::CMAES(Data *data_, Model *model_)
-        : data(data_), model(model_), dist_normal_real() {
+        : data(data_), model(model_), dist_normal_real(0, 1) {
 };
 
 void CMAES::optimize() {
+    std::cout << "\noptimization starting wtih: "
+    << "n_offsprings: " << era.n_offsprings << " sigma: " << era.sigma << std::endl;
     should_stop = false;
     while (era.i_iteration < n_iteration_max && !should_stop) {
         sample_offsprings();
@@ -17,7 +19,7 @@ void CMAES::optimize() {
         update_weights();
         update_cov_matrix();
         update_sigma();
-        check_cov_matrix_condition();
+        stopping_criteria();
         if (era.i_iteration % n_interval_plot == 0) {
             plot(era.params_mean);
         }
@@ -27,9 +29,11 @@ void CMAES::optimize() {
 }
 
 void CMAES::sample_offsprings() {
-    for (dvec &zo : era.z_offsprings)
-        std::generate(zo.begin(), zo.end(), [&]() { return dist_normal_real(mt); });
-
+    for (int i = 0; i < era.n_offsprings; i++) {
+        for (int j = 0; j < era.n_params; j++) {
+            era.z_offsprings[i][j] = dist_normal_real(mt);;
+        }
+    }
     dmat BD = era.B * era.D;
     for (int i = 0; i < era.n_offsprings; i++) {
         era.y_offsprings[i] = BD * era.z_offsprings[i];
@@ -86,8 +90,10 @@ void CMAES::cummulative_stepsize_adaption() {
 
     // -> h sigma
     double p_s_norm = arma::norm(era.p_s);
-    era.h_sig = p_s_norm / std::sqrt(1.0 - std::pow(1.0 - era.c_s, 2.0 * (era.i_iteration + 1)))
-                < (1.4 + 2.0 / (era.n_params + 1)) * era.chi;
+    era.h_sig = p_s_norm
+                < (1.4 + 2.0 / (era.n_params + 1))
+                  * std::sqrt(1.0 - std::pow(1.0 - era.c_s, 2.0 * (era.i_iteration + 1)))
+                  * era.chi;
     // <-
 
     // -> p cov
@@ -127,14 +133,25 @@ void CMAES::eigendecomposition() {
     era.C_invsqrt = era.B * arma::inv(era.D) * era.B.t();
 }
 
-void CMAES::check_cov_matrix_condition() {
-    auto eigval_minmax = std::minmax_element(era.C_eigvals.begin(), era.C_eigvals.end());
-    if ((*eigval_minmax.second) / (*eigval_minmax.first) > 1e14) {
+void CMAES::stopping_criteria() {
+    double eigval_min = era.C_eigvals[0];
+    double eigval_max = era.C_eigvals[era.n_params - 1];
+    if (eigval_max / eigval_min > 1e14) {
         std::cout << "stopping criteria occured: bad covariance condition." << std::endl;
         std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
 
         should_stop = true;
     }
+
+
+    if (era.C_eigvals[era.n_params - 1] / era.C_eigvals[0] > 1e14) {
+        std::cout << "stopping criteria occured: bad covariance condition." << std::endl;
+        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+
+        should_stop = true;
+    }
+
+
 }
 
 double CMAES::cost_function(dvec &params) {
@@ -191,7 +208,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> restarts
     for (i_run = 1; i_run < n_restarts + 1; i_run++) {
         int n_regime1 = n_offsprings0 * (1 << i_run);
-        while (budget[0] > budget[1]) {
+        while (0 > 2) {
             double ur2 = std::pow(dist_uniform_real(mt), 2.0);
             int n_offsprings = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
             double us = dist_uniform_real(mt);
@@ -204,7 +221,6 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
         era.init(n_offsprings, n_params, params_best, sigma0);
         optimize();
         budget[0] += era.i_func_eval;
-        std::cout << "params_best: " << params_best.t() << std::endl;
         std::cout << "i_run: " << i_run << " / " << n_restarts << " completed." << std::endl;
     }
     // <-
@@ -212,7 +228,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> plot final result
     cost_function(params_best);
     plot(params_best);
-    std::cout << "f_best: " << f_best << " params_best: " << params_best.t() << std::endl;
+    std::cout << "f_best: " << f_best << ", params_best: " << params_best.t() << std::endl;
     // <-
 }
 

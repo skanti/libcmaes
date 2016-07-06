@@ -30,7 +30,7 @@ public:
 
     void eigendecomposition();
 
-    void check_cov_matrix_condition();
+    void stopping_criteria();
 
     void update_best();
 
