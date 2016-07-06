@@ -14,6 +14,7 @@ struct Parameters {
     int n_params;
     int n_parents;
     int i_iteration;
+    int i_func_eval;
     double n_mu_eff;
     std::vector<dvec> params_offsprings;
     std::vector<dvec> params_parents_ranked;

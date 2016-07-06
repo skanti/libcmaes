@@ -5,6 +5,7 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     n_parents = n_offsprings / 2;
     n_params = n_params_;
     i_iteration = 0;
+    i_func_eval = 0;
 
     //-> weights tmp
     dvec w_tmp(n_offsprings);

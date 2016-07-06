@@ -5,36 +5,6 @@ CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_), dist_normal_real() {
 };
 
-void CMAES::prepare_optimization() {
-    dvec params_mean;
-    double sigma;
-    if (i_run == 0) {
-        n_offsprings0 = (int) (4 + 3 * std::log(n_params));
-        n_offsprings = n_offsprings0;
-        n_offsprings_l = n_offsprings0;
-        params_mean = x0;
-        sigma = sigma0;
-    } else {
-        int n_regime1 = n_offsprings0 * (1 << i_run);
-        double ur2 = std::pow(dist_uniform_real(mt), 2.0);
-        int n_regime2 = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
-        double us = dist_uniform_real(mt);
-        double sigma_regime2 = sigma0 * 2.0 * std::pow(10, -2.0 * us);
-        if (0 <= 2) {
-            n_offsprings = n_regime1;
-            n_offsprings_l = n_regime1;
-            sigma = sigma0;
-            std::cout << "regime 1" << std::endl;
-        } else {
-            n_offsprings = n_regime2;
-            sigma = sigma_regime2;
-            std::cout << "regime 2" << std::endl;
-        }
-        params_mean = params_best;
-    }
-    era.init(n_offsprings, n_params, params_mean, sigma);
-}
-
 void CMAES::optimize() {
     should_stop = false;
     while (era.i_iteration < n_iteration_max && !should_stop) {
@@ -72,7 +42,8 @@ void CMAES::rank_and_sort() {
     for (int i = 0; i < era.n_offsprings; i++) {
         era.f_offsprings[i] = cost_function(era.params_offsprings[i]);
     }
-    n_func_evals += era.n_offsprings;
+    era.i_func_eval += era.n_offsprings;
+    i_func_eval_tot += era.n_offsprings;
     // <-
     // -> sorting
     std::iota(era.keys_offsprings.begin(), era.keys_offsprings.end(), 0);
@@ -186,9 +157,14 @@ void CMAES::plot() {
     std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.2e9)));
 }
 
+
 void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
+    // -> settings
     mt.seed(seed);
     n_params = model->n_params;
+    i_run = 0;
+    // <-
+
     // -> first guess
     x0.resize(n_params);
     x0 = x0_;
@@ -198,18 +174,39 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> prepare fmin
     params_best.resize(n_params);
     params_best = x0;
-    f_best = std::isnan(cost_function(params_best)) ? std::numeric_limits<double>::infinity() : cost_function(
-            params_best);
+    f_best = std::isnan(cost_function(params_best)) ? std::numeric_limits<double>::infinity()
+                                                    : cost_function(params_best);
     fac_inc_pop = 2.0;
-    n_func_evals = 0;
+    i_func_eval_tot = 0;
+    int budget[2] = {0, 0};
     // <-
 
-    // -> runs
-    for (i_run = 0; i_run < n_restarts + 1; i_run++) {
-        prepare_optimization();
+    // -> first run
+    n_offsprings0 = (int) (4 + 3 * std::log(n_params));
+    n_offsprings = n_offsprings0;
+    era.init(n_offsprings, n_params, x0, sigma0);
+    optimize();
+    budget[0] += era.i_func_eval;
+    // <-
+
+    // -> restarts
+    for (i_run = 1; i_run < n_restarts + 1; i_run++) {
+        int n_regime1 = n_offsprings0 * (1 << i_run);
+        while (budget[0] > budget[1]) {
+            double ur2 = std::pow(dist_uniform_real(mt), 2.0);
+            int n_offsprings = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
+            double us = dist_uniform_real(mt);
+            double sigma_regime2 = sigma0 * 2.0 * std::pow(10, -2.0 * us);
+            era.init(n_offsprings, n_params, params_best, sigma_regime2);
+            optimize();
+            budget[1] += era.i_func_eval;
+        }
+        n_offsprings = n_regime1;
+        era.init(n_offsprings, n_params, params_best, sigma0);
         optimize();
+        budget[0] += era.i_func_eval;
         std::cout << "params_best: " << params_best.t() << std::endl;
-        std::cout << "i_run: " << (i_run + 1) << " / " << (n_restarts + 1) << " completed." << std::endl;
+        std::cout << "i_run: " << i_run << " / " << n_restarts << " completed." << std::endl;
     }
     // <-
 

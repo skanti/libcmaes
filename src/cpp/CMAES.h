@@ -14,8 +14,6 @@ public:
 
     void fmin(dvec &x0_, double sigma0_, int n_restarts, int seed = 999);
 
-    void prepare_optimization();
-
     void sample_offsprings();
 
     void rank_and_sort();
@@ -63,7 +61,7 @@ public:
     int n_offsprings;
 
     // cost
-    int n_func_evals;
+    int i_func_eval_tot;
 
     // random
     std::mt19937 mt;
