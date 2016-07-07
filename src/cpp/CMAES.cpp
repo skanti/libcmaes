@@ -1,8 +1,9 @@
 #include "CMAES.h"
 #include <thread>
+#include <omp.h>
 
 CMAES::CMAES(Data *data_, Model *model_)
-        : data(data_), model(model_), dist_normal_real(0, 1) {
+        : data(data_), model(model_), dist_normal_real(0, 1), dist_uniform_real(0, 1) {
 };
 
 void CMAES::optimize() {
@@ -55,7 +56,6 @@ void CMAES::rank_and_sort() {
               [&](std::size_t idx1, std::size_t idx2) { return era.f_offsprings[idx1] < era.f_offsprings[idx2]; });
     for (int i = 0; i < era.n_parents; i++) {
         int idx_new = era.keys_offsprings[i];
-        era.y_parents_ranked[i] = era.y_offsprings[idx_new];
         era.params_parents_ranked[i] = era.params_offsprings[idx_new];
     }
     for (int i = 0; i < era.n_offsprings; i++) {
@@ -78,7 +78,7 @@ void CMAES::assign_new_mean() {
     era.params_mean.zeros();
     era.y_mean.zeros();
     for (int i = 0; i < era.n_parents; i++) {
-        era.y_mean += era.y_parents_ranked[i] * era.w[i];
+        era.y_mean += era.y_offsprings_ranked[i] * era.w[i];
         era.params_mean += era.params_parents_ranked[i] * era.w[i];
     }
 }
@@ -144,7 +144,7 @@ void CMAES::stopping_criteria() {
     }
 }
 
-dvec CMAES::scale(dvec params) {
+dvec CMAES::scale(dvec &params) {
     return 1e-4 + (1e-1 - 1e-4) / 100 * params;
 
 }
@@ -166,9 +166,8 @@ void CMAES::plot(dvec &params) {
     gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
     gp.send1d(boost::make_tuple(data->y[0], data->y[1]));
     gp.send1d(boost::make_tuple(model->y[0], model->y[1]));
-    std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.2e9)));
+    std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.025e9)));
 }
-
 
 void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> settings

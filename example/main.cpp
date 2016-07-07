@@ -58,14 +58,6 @@ struct ToyModel1 : public Model {
         }
         file.close();
     }
-
-    void plot_model(dvec &x, dvec &params) {
-        Gnuplot gp;
-        evaluate(x, params);
-        gp << "set yrange [] reverse\n";
-        gp << "plot '-' with lines title 'model'\n";
-        gp.send1d(boost::make_tuple(y[0], y[1]));
-    }
 };
 
 int main() {

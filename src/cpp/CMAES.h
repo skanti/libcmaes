@@ -40,7 +40,7 @@ public:
 
     void optimize();
 
-    dvec scale(dvec params);
+    dvec scale(dvec &params);
 
     Data *data;
     Model *model;
@@ -68,7 +68,7 @@ public:
 
     // options
     const int n_iteration_max = (int) (1e6);
-    const int n_interval_plot = 200;
+    const int n_interval_plot = 25;
     bool should_stop;
 
     // plotting

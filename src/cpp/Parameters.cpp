@@ -54,10 +54,8 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     }
 
     params_parents_ranked.resize(n_parents);
-    y_parents_ranked.resize(n_parents);
     for (int i = 0; i < n_parents; i++) {
         params_parents_ranked[i].resize(n_params);
-        y_parents_ranked[i].resize(n_params);
     }
     // <-
 

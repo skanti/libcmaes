@@ -21,7 +21,6 @@ struct Parameters {
     std::vector<dvec> z_offsprings;
     std::vector<dvec> y_offsprings;
     std::vector<dvec> y_offsprings_ranked;
-    std::vector<dvec> y_parents_ranked;
     dvec f_offsprings;
     dvec w;
     dvec w_var;
