@@ -139,7 +139,12 @@ void CMAES::stopping_criteria() {
     if (eigval_max / eigval_min > 1e14) {
         std::cout << "stopping criteria occured: bad covariance condition." << std::endl;
         std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+        should_stop = true;
+    }
 
+    if (f_best < 1e-10) {
+        std::cout << "stopping criteria occured: f_best small." << std::endl;
+        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
         should_stop = true;
     }
 }
