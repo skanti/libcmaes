@@ -31,7 +31,7 @@ void CMAES::optimize() {
 void CMAES::sample_offsprings() {
     for (int i = 0; i < era.n_offsprings; i++) {
         for (int j = 0; j < era.n_params; j++) {
-            era.z_offsprings[i][j] = dist_normal_real(mt);;
+            era.z_offsprings[i][j] = dist_normal_real(mt);
         }
     }
     dmat BD = era.B * era.D;
@@ -223,7 +223,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> plot final result
     cost_function(params_best);
     plot(params_best);
-    dvec params_best_unscaled = 1e-4 + (1e-1 - 1e-4) / 100 * params_best;
+    dvec params_best_unscaled = scale(params_best);
     std::cout << "f_best: " << f_best << ", params_best: " << params_best_unscaled.t() << std::endl;
     // <-
 }
