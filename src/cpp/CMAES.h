@@ -40,6 +40,8 @@ public:
 
     void optimize();
 
+    dvec scale(dvec params);
+
     Data *data;
     Model *model;
     Parameters era;
@@ -50,14 +52,10 @@ public:
     int n_offsprings0;
     int n_params;
 
-    // bipop
-    int n_offsprings_l;
-
     // restarts
     int i_run;
     dvec params_best;
     double f_best;
-    double fac_inc_pop;
     int n_offsprings;
 
     // cost

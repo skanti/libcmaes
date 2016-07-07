@@ -144,8 +144,13 @@ void CMAES::stopping_criteria() {
     }
 }
 
+dvec CMAES::scale(dvec params) {
+    return 1e-4 + (1e-1 - 1e-4) / 100 * params;
+
+}
+
 double CMAES::cost_function(dvec &params) {
-    dvec params_tmp = 1e-4 + (1e-1 - 1e-4) / 100 * params;
+    dvec params_tmp = scale(params);
     model->evaluate(data->x, params_tmp);
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
@@ -183,7 +188,6 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     params_best = x0;
     f_best = std::isnan(cost_function(params_best)) ? std::numeric_limits<double>::infinity()
                                                     : cost_function(params_best);
-    fac_inc_pop = 2.0;
     i_func_eval_tot = 0;
     int budget[2] = {0, 0};
     // <-
@@ -219,7 +223,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> plot final result
     cost_function(params_best);
     plot(params_best);
-    dvec params_best_unscaled = params_best; //(params_best - 1e-4) * 100 / (1e-1 - 1e-4);
+    dvec params_best_unscaled = 1e-4 + (1e-1 - 1e-4) / 100 * params_best;
     std::cout << "f_best: " << f_best << ", params_best: " << params_best_unscaled.t() << std::endl;
     // <-
 }
