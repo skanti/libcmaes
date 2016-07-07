@@ -80,7 +80,7 @@ int main() {
 
     CMAES cmaes(&toy_data, &toy_model);
     dvec x0(toy_model.n_params, arma::fill::ones);
-    double sigma0 = 1.0;
+    double sigma0 = 2;
     cmaes.fmin(x0, sigma0, 7, 999);
 
     // plotting
