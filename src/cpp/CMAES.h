@@ -40,7 +40,7 @@ public:
 
     void optimize();
 
-    dvec scale(dvec &params);
+    void scale(dvec &params, dvec &params_tss);
 
     Data *data;
     Model *model;

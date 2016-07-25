@@ -1,6 +1,6 @@
 #include "CMAES.h"
 #include <thread>
-#include <omp.h>
+#include "SolverPool.h"
 
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_), dist_normal_real(0, 1), dist_uniform_real(0, 1) {
@@ -8,7 +8,9 @@ CMAES::CMAES(Data *data_, Model *model_)
 
 void CMAES::optimize() {
     std::cout << "\noptimization starting wtih: "
-              << "n_offsprings: " << era.n_offsprings << " sigma: " << era.sigma << std::endl;
+              << "n_offsprings: " << era.n_offsprings
+              << " sigma: " << era.sigma
+              << " f_best: " << f_best << std::endl;
     should_stop = false;
     while (era.i_iteration < n_iteration_max && !should_stop) {
         sample_offsprings();
@@ -149,13 +151,13 @@ void CMAES::stopping_criteria() {
     }
 }
 
-dvec CMAES::scale(dvec &params) {
-    return 1e-4 + (1e-1 - 1e-4) / 100 * params;
-
+void CMAES::scale(dvec &params, dvec &params_tss) {
+    SolverPool::transform_scale_shift(params.memptr(), 0, 100, 1e-4, 1e-1, n_params, params_tss.memptr());
 }
 
 double CMAES::cost_function(dvec &params) {
-    dvec params_tmp = scale(params);
+    dvec params_tmp(n_params);
+    scale(params, params_tmp);
     model->evaluate(data->x, params_tmp);
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
@@ -227,7 +229,8 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     // -> plot final result
     cost_function(params_best);
     plot(params_best);
-    dvec params_best_unscaled = scale(params_best);
+    dvec params_best_unscaled(n_params);
+    scale(params_best, params_best_unscaled);
     std::cout << "f_best: " << f_best << ", params_best: " << params_best_unscaled.t() << std::endl;
     // <-
 }

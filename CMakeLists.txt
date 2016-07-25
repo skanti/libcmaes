@@ -23,7 +23,7 @@ set(SOURCE_FILES_H
         ${SOURCE_DIR}/cpp/Model.h
         ${SOURCE_DIR}/cpp/Types.h
         #${SOURCE_DIR}/cpp/GnuplotIostream.h
-        )
+        src/cpp/SolverPool.h)
 
 
 # dependencies
