@@ -22,7 +22,8 @@ set(SOURCE_FILES_H
         ${SOURCE_DIR}/cpp/Data.h
         ${SOURCE_DIR}/cpp/Model.h
         ${SOURCE_DIR}/cpp/Types.h
-        ${SOURCE_DIR}/cpp/GnuplotIostream.h)
+        #${SOURCE_DIR}/cpp/GnuplotIostream.h
+        )
 
 
 # dependencies
@@ -30,10 +31,10 @@ set(ARMADILLO_DIR /usr/local/Cellar/armadillo/7.200.2)
 set(BOOST_DIR /usr/local/Cellar/boost/1.60.0_2)
 #set(EIGEN_DIR /usr/local/Cellar/eigen/3.2.8)
 
-include_directories(${SOURCE_DIR}/cpp ${ARMADILLO_DIR}/include ${BOOST_DIR}/include)
-link_directories(${ARMADILLO_DIR}/lib ${BOOST_DIR}/lib)
+include_directories(${SOURCE_DIR}/cpp ${ARMADILLO_DIR}/include)
+link_directories(${ARMADILLO_DIR}/lib)
 add_library(cmaes ${SOURCE_FILES_CPP} ${SOURCE_FILES_H})
-target_link_libraries(cmaes armadillo boost_iostreams boost_system boost_filesystem)
+target_link_libraries(cmaes armadillo   )
 
 # test
 #link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})

@@ -8,7 +8,7 @@ CMAES::CMAES(Data *data_, Model *model_)
 
 void CMAES::optimize() {
     std::cout << "\noptimization starting wtih: "
-    << "n_offsprings: " << era.n_offsprings << " sigma: " << era.sigma << std::endl;
+              << "n_offsprings: " << era.n_offsprings << " sigma: " << era.sigma << std::endl;
     should_stop = false;
     while (era.i_iteration < n_iteration_max && !should_stop) {
         sample_offsprings();
@@ -166,12 +166,12 @@ double CMAES::cost_function(dvec &params) {
 }
 
 void CMAES::plot(dvec &params) {
-    cost_function(params);
-    gp << "set yrange [] reverse\n";
-    gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
-    gp.send1d(boost::make_tuple(data->y[0], data->y[1]));
-    gp.send1d(boost::make_tuple(model->y[0], model->y[1]));
-    std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.025e9)));
+    //cost_function(params);
+    //gp << "set yrange [] reverse\n";
+    //gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
+    //gp.send1d(boost::make_tuple(data->y[0], data->y[1]));
+    //gp.send1d(boost::make_tuple(model->y[0], model->y[1]));
+    //std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.025e9)));
 }
 
 void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {

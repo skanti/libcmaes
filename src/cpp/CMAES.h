@@ -5,7 +5,7 @@
 #include "Types.h"
 #include "Model.h"
 #include "Parameters.h"
-#include "GnuplotIostream.h"
+//#include "GnuplotIostream.h"
 
 
 class CMAES {
@@ -72,7 +72,7 @@ public:
     bool should_stop;
 
     // plotting
-    Gnuplot gp;
+    //Gnuplot gp;
 
 };
 
