@@ -7,7 +7,7 @@
 struct Data {
     int n_data, dim;
     dvec x; // <- 1-D array
-    std::vector<dvec> y; // <- N-D array
+    dmat y; // <- N-D array
 
     virtual void populate() = 0;
 };

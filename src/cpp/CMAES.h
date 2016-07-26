@@ -1,6 +1,7 @@
 #ifndef LIBCMAES_CMAES_H
 #define LIBCMAES_CMAES_H
 
+#include <random>
 #include "Data.h"
 #include "Types.h"
 #include "Model.h"

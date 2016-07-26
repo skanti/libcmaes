@@ -1,18 +1,22 @@
-#include "CMAES.h"
+//#include "CMAES.h"
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cmath>
+#include <complex>
+#include "Model.h"
+#include "SolverPool.h"
+#include "Types.h"
+#include "Data.h"
 
 struct ToyData1 : public Data {
     void populate() {
         n_data = 50;
         dim = 2;
         x.resize(n_data);
-        y.resize(dim);
-        for (int i = 0; i < dim; i++)
-            y[i].resize(n_data);
+        y.resize(n_data, dim);
         // fill
-        x = arma::logspace(-1, 5, n_data);
+        SolverPool::logspace(x.data(), -1, 5, n_data);
         dvec params(
                 {5.3783e-07, 0.90633, 0.10979, 0.24789, 0.60554, 0.35638, 0.00032026, 0.86119, 0.35704, 0.00014935,
                  1.038});
@@ -24,8 +28,8 @@ struct ToyData1 : public Data {
                                      + params[2] / (1.0 + std::pow(jc * x[i] * params[3], params[4]))
                                      + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]))
                                      + params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
-            y[0][i] = r.real();
-            y[1][i] = r.imag();
+            y(i, 0) = r.real();
+            y(i, 1) = r.imag();
         }
     }
 
@@ -44,8 +48,8 @@ struct ToyModel1 : public Model {
                                      + params[2] / (1.0 + std::pow(jc * x[i] * params[3], params[4]))
                                      + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]))
                                      + params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
-            y[0][i] = r.real();
-            y[1][i] = r.imag();
+            y(i, 0) = r.real();
+            y(i, 1) = r.imag();
         }
     }
 
@@ -54,7 +58,7 @@ struct ToyModel1 : public Model {
         std::ofstream file;
         file.open(filename);
         for (int i = 0; i < n_model; i++) {
-            file << y[0][i] << " " << y[1][i];
+            file << y(i, 0) << " " << y(i, 1);
             file << std::endl;
         }
         file.close();
@@ -71,11 +75,11 @@ int main() {
     ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
     // <-
 
-    CMAES cmaes(&toy_data, &toy_model);
-    dvec x0(toy_model.n_params, arma::fill::ones);
+    //CMAES cmaes(&toy_data, &toy_model);
+    dvec x0(toy_model.n_params, 1.0);
     dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
     double sigma0 = 2;
-    cmaes.fmin(x0, sigma0, x_typical, 7, 999);
+    //cmaes.fmin(x0, sigma0, x_typical, 7, 999);
 
     // plotting
     /*

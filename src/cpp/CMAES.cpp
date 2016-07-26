@@ -130,10 +130,10 @@ void CMAES::update_cov_matrix() {
 void CMAES::eigendecomposition() {
     //std::cout << era.C << std::endl;
     //era.C = arma::symmatu(era.C);
-    arma::eig_sym(era.C_eigvals, era.B, era.C);
-    dvec D2 = arma::sqrt(era.C_eigvals);
-    era.D = arma::diagmat(D2);
-    era.C_invsqrt = era.B * arma::inv(era.D) * era.B.t();
+    //arma::eig_sym(era.C_eigvals, era.B, era.C);
+    //dvec D2 = arma::sqrt(era.C_eigvals);
+    //era.D = arma::diagmat(D2);
+    //era.C_invsqrt = era.B * arma::inv(era.D) * era.B.t();
 }
 
 void CMAES::stopping_criteria() {
