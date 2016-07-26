@@ -1,4 +1,4 @@
-//#include "CMAES.h"
+#include "CMAES.h"
 #include <string>
 #include <fstream>
 #include <iostream>
@@ -75,7 +75,7 @@ int main() {
     ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
     // <-
 
-    //CMAES cmaes(&toy_data, &toy_model);
+    CMAES cmaes(&toy_data, &toy_model);
     dvec x0(toy_model.n_params, 1.0);
     dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
     double sigma0 = 2;

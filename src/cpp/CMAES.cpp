@@ -1,6 +1,7 @@
 #include "CMAES.h"
 #include <thread>
 #include "SolverPool.h"
+#include "mkl.h"
 
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_), dist_normal_real(0, 1), dist_uniform_real(0, 1) {
@@ -32,15 +33,18 @@ void CMAES::optimize() {
 }
 
 void CMAES::sample_offsprings() {
-    for (int i = 0; i < era.n_offsprings; i++) {
-        for (int j = 0; j < era.n_params; j++) {
-            era.z_offsprings[i][j] = dist_normal_real(mt);
+    for (int j = 0; j < era.n_params; j++) {
+        for (int i = 0; i < era.n_offsprings; i++) {
+            era.z_offsprings(i, j) = dist_normal_real(mt);
         }
     }
-    dmat BD = era.B * era.D;
+    SolverPool::dgemm(era.B.data(), era.D.data(), era.BD.data(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
+                      era.B.n_rows, era.C.n_rows, era.BD.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
-        era.y_offsprings[i] = BD * era.z_offsprings[i];
-        era.params_offsprings[i] = era.params_mean + era.sigma * era.y_offsprings[i];
+        SolverPool::dgemv(era.BD.data(), era.z_offsprings.data(), era.y_offsprings.data(), era.BD.n_rows, era.BD.n_cols,
+                          era.BD.n_rows);
+        std::copy(era.params_mean.data(), era.params_mean.data(), era.params_offsprings.get_col(i));
+        SolverPool::daxpy(era.y_offsprings.data(), era.params_offsprings.get_col(i), era.sigma, era.n_params);
     }
 }
 
@@ -77,9 +81,9 @@ void CMAES::update_best() {
 }
 
 void CMAES::assign_new_mean() {
-    era.params_mean_old = era.params_mean;
-    era.params_mean.zeros();
-    era.y_mean.zeros();
+    std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_mean_old.begin());
+    std::fill(era.params_mean.begin(), era.params_mean.end(), 0.0);
+    std::fill(era.y_mean.begin(), era.y_mean.end(), 0.0);
     for (int i = 0; i < era.n_parents; i++) {
         era.y_mean += era.y_offsprings_ranked[i] * era.w[i];
         era.params_mean += era.params_parents_ranked[i] * era.w[i];

@@ -1,6 +1,7 @@
 #ifndef LIBCMAES_SOLVERPOOL_H
 #define LIBCMAES_SOLVERPOOL_H
 
+#include "mkl.h"
 
 struct SolverPool {
     static void
@@ -12,6 +13,16 @@ struct SolverPool {
     static void least_squares(double *v1, double *v2, int n);
 
     static void logspace(double *v, double a, double b, int n);
+
+    static void
+    dgemm(double *a, double *b, double *c, int n_rows_a, int n_cols_a, int n_cols_b, int lda, int ldb, int ldc);
+
+    static void
+    dgemv(double *a, double *x, double *y, int n_rows_a, int n_cols_a, int lda);
+
+    static void daxpy(double *x, double *y, double a, int n);
+
+    static void vdmul(double *x, double *y, double *z, int n);
 };
 
 

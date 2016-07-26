@@ -1,4 +1,5 @@
 #include "Parameters.h"
+#include <algorithm>
 
 void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, double &sigma_) {
     n_offsprings = n_offsprings_;
@@ -30,9 +31,9 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     // -> vectors
     f_offsprings.resize(n_offsprings);
     p_s.resize(n_params);
-    p_s.zeros();
+    std::fill(&p_s[0], &p_s[n_params - 1], 0.0);
     p_c.resize(n_params);
-    p_c.zeros();
+    std::fill(&p_c[0], &p_c[n_params - 1], 0.0);
     params_mean.resize(n_params);
     params_mean = params_mean_;
     params_mean_old.resize(n_params);
@@ -42,37 +43,25 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     // <-
 
     //-> vector of vectors
-    params_offsprings.resize(n_offsprings);
-    y_offsprings.resize(n_offsprings);
-    y_offsprings_ranked.resize(n_offsprings);
-    z_offsprings.resize(n_offsprings);
-    for (int i = 0; i < n_offsprings; i++) {
-        params_offsprings[i].resize(n_params);
-        y_offsprings[i].resize(n_params);
-        y_offsprings_ranked[i].resize(n_params);
-        z_offsprings[i].resize(n_params);
-    }
-
-    params_parents_ranked.resize(n_parents);
-    for (int i = 0; i < n_parents; i++) {
-        params_parents_ranked[i].resize(n_params);
-    }
+    params_offsprings.resize(n_params, n_offsprings);
+    y_offsprings.resize(n_params, n_offsprings);
+    y_offsprings_ranked.resize(n_params, n_offsprings);
+    z_offsprings.resize(n_params, n_offsprings);
+    params_parents_ranked.resize(n_params, n_parents);
     // <-
 
+    // -> learning variables
     c_m = 1.0;
     c_s = (n_mu_eff + 2.0) / (n_params + n_mu_eff + 5.0);
     c_c = (4.0 + n_mu_eff / n_params) / (n_params + 4.0 + 2.0 * n_mu_eff / n_params);
     c_1 = 2.0 / (std::pow((n_params + 1.3), 2) + n_mu_eff);
     c_mu = 2.0 * (n_mu_eff - 2.0 + 1.0 / n_mu_eff) / (std::pow(n_params + 2.0, 2) + n_mu_eff);
     c_mu = std::min(1.0 - c_1, c_mu);
-
     d_s = 1.0 + c_s + 2.0 * std::max(0.0, std::sqrt((n_mu_eff - 1) / (n_params + 1)) - 1);
-
     chi = std::sqrt(n_params) * (1.0 - 1.0 / (4.0 * n_params) + 1.0 / (21.0 * n_params * n_params));
-
-    // constants used in covariance update.
     p_s_fact = std::sqrt(c_s * (2.0 - c_s) * n_mu_eff);
     p_c_fact = std::sqrt(c_c * (2.0 - c_c) * n_mu_eff);
+    // <-
 
     // -> parameter for active cma-es
     a_mu = 1.0 + c_1 / c_mu;
@@ -93,17 +82,21 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     w_var = w;
     // <-
 
+    // -> sigma
     sigma = sigma_;
+    // <-
 
     // -> matrices
     C.resize(n_params, n_params);
     C_invsqrt.resize(n_params, n_params);
     B.resize(n_params, n_params);
     D.resize(n_params, n_params);
+    BD.resize(n_params, n_params);
     C.eye();
     C_invsqrt.eye();
     B.eye();
     D.eye();
+    BD.eye();
     // <-
 
 }

@@ -9,23 +9,34 @@ enum StorageType {
 };
 
 template<typename T>
-struct Matrix {
-    Matrix(int n_rows_, int n_cols_) : n_rows(n_rows_), n_cols(n_cols_), data(n_rows * n_cols) {};
+struct Matrix : public T {
+    Matrix(int n_rows_, int n_cols_) : n_rows(n_rows_), n_cols(n_cols_), T(n_rows * n_cols) {};
 
-    Matrix() : n_rows(0), n_cols(0), data(0) {};
+    Matrix() : n_rows(0), n_cols(0), T(0) {};
 
     void resize(int n_rows_, int n_cols_) {
         n_rows = n_rows_;
         n_cols = n_cols_;
-        data.resize(n_rows * n_cols);
+        T::resize(n_rows * n_cols);
+    }
+
+    void eye() {
+        for (int j = 0; j < n_cols; j++) {
+            for (int i = 0; i < n_rows; i++) {
+                this->data[j * n_rows + i] = i == j;
+            }
+        }
+    }
+
+    double *get_col(int j) {
+        return this->data() + j * n_rows;
     }
 
     double &operator()(int i, int j) {
-        return data[j * n_rows + i];
+        return this->operator[](j * n_rows + i);
     }
 
     int n_rows, n_cols;
-    T data;
 };
 
 typedef std::vector<double, AlignedAllocator<double, 32>> dvec;

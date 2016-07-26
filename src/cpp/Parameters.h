@@ -16,18 +16,18 @@ struct Parameters {
     int i_iteration;
     int i_func_eval;
     double n_mu_eff;
-    std::vector<dvec> params_offsprings;
-    std::vector<dvec> params_parents_ranked;
-    std::vector<dvec> z_offsprings;
-    std::vector<dvec> y_offsprings;
-    std::vector<dvec> y_offsprings_ranked;
+    dmat params_offsprings;
+    dmat params_parents_ranked;
+    dmat z_offsprings;
+    dmat y_offsprings;
+    dmat y_offsprings_ranked;
     dvec f_offsprings;
     dvec w;
     dvec w_var;
     dvec y_mean;
     dvec params_mean;
     dvec params_mean_old;
-    arma::Col<int> keys_offsprings;
+    ivec keys_offsprings;
     double a_mu;
     double a_mueff;
     double a_posdef;
@@ -48,6 +48,7 @@ struct Parameters {
     dmat C_invsqrt;
     dmat B;
     dmat D;
+    dmat BD;
     bool h_sig;
 };
 
