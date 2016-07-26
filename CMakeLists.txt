@@ -34,7 +34,7 @@ set(BOOST_DIR /usr/local/Cellar/boost/1.60.0_2)
 include_directories(${SOURCE_DIR}/cpp ${ARMADILLO_DIR}/include)
 link_directories(${ARMADILLO_DIR}/lib)
 add_library(cmaes ${SOURCE_FILES_CPP} ${SOURCE_FILES_H})
-target_link_libraries(cmaes armadillo   )
+target_link_libraries(cmaes armadillo)
 
 # test
 #link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})

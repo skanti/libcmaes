@@ -12,11 +12,12 @@ struct ToyData1 : public Data {
         for (int i = 0; i < dim; i++)
             y[i].resize(n_data);
         // fill
-        x = arma::logspace(-1, 5, 50);
-        dvec params(std::vector<double>(
-        { 5.3783e-07, 0.90633, 0.10979, 0.24789, 0.60554, 0.35638, 0.00032026, 0.86119, 0.35704, 0.00014935, 1.038 }));
+        x = arma::logspace(-1, 5, n_data);
+        dvec params(
+                {5.3783e-07, 0.90633, 0.10979, 0.24789, 0.60554, 0.35638, 0.00032026, 0.86119, 0.35704, 0.00014935,
+                 1.038});
 
-        std::complex<double> jc = std::sqrt(std::complex<double>(-1, 0));
+        std::complex<double> jc(0, 1);
         for (int i = 0; i < n_data; i++) {
             // L + Rs + RQ1 + RQ2 + RQ3
             std::complex<double> r = jc * x[i] * params[0] + params[1]

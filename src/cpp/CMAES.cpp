@@ -46,6 +46,7 @@ void CMAES::sample_offsprings() {
 
 void CMAES::rank_and_sort() {
     // -> ranking by cost-function
+#pragma omp parallel for
     for (int i = 0; i < era.n_offsprings; i++) {
         era.f_offsprings[i] = cost_function(era.params_offsprings[i]);
     }
