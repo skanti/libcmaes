@@ -37,7 +37,7 @@ struct ToyModel1 : public Model {
     };
 
     void evaluate(dvec &x, dvec &params) {
-        std::complex<double> jc = std::complex<double>(0, 1);
+        std::complex<double> jc(0, 1);
         for (int i = 0; i < n_model; i++) {
             // L + Rs + RQ1 + RQ2 + RQ3
             std::complex<double> r = jc * x[i] * params[0] + params[1]
