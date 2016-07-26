@@ -5,12 +5,13 @@
 
 struct SolverPool {
     static void
-    transform_scale_shift(double *params, double a_geno, double b_geno, double a_pheno, double b_pheno, int n,
-                          double *params_new) {
+    transform_scale_shift(double *params, double *params_typical, double a_geno, double b_geno, double a_pheno,
+                          double b_pheno, int n, double *params_new) {
         double d_pheno = b_pheno - a_pheno;
         double d_geno = b_geno - a_geno;
+        double scale = a_pheno + d_pheno / d_geno;
         for (int i = 0; i < n; i++) {
-            params_new[i] = a_pheno + d_pheno / d_geno * params[i];
+            params_new[i] = params[i] * params[i] * params_typical[i];
         }
     }
 

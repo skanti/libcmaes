@@ -151,13 +151,14 @@ void CMAES::stopping_criteria() {
     }
 }
 
-void CMAES::scale(dvec &params, dvec &params_tss) {
-    SolverPool::transform_scale_shift(params.memptr(), 0, 100, 1e-4, 1e-1, n_params, params_tss.memptr());
+void CMAES::transform_scale_shift(dvec &params, dvec &params_tss) {
+    SolverPool::transform_scale_shift(params.memptr(), x_typical.memptr(), 0, 100, 1e-4, 1e-1, n_params,
+                                      params_tss.memptr());
 }
 
 double CMAES::cost_function(dvec &params) {
     dvec params_tmp(n_params);
-    scale(params, params_tmp);
+    transform_scale_shift(params, params_tmp);
     model->evaluate(data->x, params_tmp);
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
@@ -176,7 +177,7 @@ void CMAES::plot(dvec &params) {
     //std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.025e9)));
 }
 
-void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
+void CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed) {
     // -> settings
     mt.seed(seed);
     n_params = model->n_params;
@@ -187,6 +188,8 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     x0.resize(n_params);
     x0 = x0_;
     sigma0 = sigma0_;
+    x_typical.resize(n_params);
+    x_typical = x_typical_;
     // <-
 
     // -> prepare fmin
@@ -230,7 +233,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, int n_restarts, int seed) {
     cost_function(params_best);
     plot(params_best);
     dvec params_best_unscaled(n_params);
-    scale(params_best, params_best_unscaled);
+    transform_scale_shift(params_best, params_best_unscaled);
     std::cout << "f_best: " << f_best << ", params_best: " << params_best_unscaled.t() << std::endl;
     // <-
 }

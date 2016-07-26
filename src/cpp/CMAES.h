@@ -12,7 +12,7 @@ class CMAES {
 public:
     CMAES(Data *data_, Model *model_);
 
-    void fmin(dvec &x0_, double sigma0_, int n_restarts, int seed = 999);
+    void fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed);
 
     void sample_offsprings();
 
@@ -40,7 +40,7 @@ public:
 
     void optimize();
 
-    void scale(dvec &params, dvec &params_tss);
+    void transform_scale_shift(dvec &params, dvec &params_tss);
 
     Data *data;
     Model *model;
@@ -48,6 +48,7 @@ public:
 
     // initial values
     dvec x0;
+    dvec x_typical;
     double sigma0;
     int n_offsprings0;
     int n_params;
