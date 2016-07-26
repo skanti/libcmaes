@@ -11,8 +11,8 @@ void CMAES::optimize() {
               << "n_offsprings: " << era.n_offsprings
               << " sigma: " << era.sigma
               << " f_best: " << f_best << std::endl;
-    should_stop = false;
-    while (era.i_iteration < n_iteration_max && !should_stop) {
+    should_stop_run = false;
+    while (era.i_iteration < n_iteration_max && !should_stop_run) {
         sample_offsprings();
         rank_and_sort();
         assign_new_mean();
@@ -142,13 +142,14 @@ void CMAES::stopping_criteria() {
     if (eigval_max / eigval_min > 1e14) {
         std::cout << "stopping criteria occured: bad covariance condition." << std::endl;
         std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
-        should_stop = true;
+        should_stop_run = true;
     }
 
     if (f_best < 1e-10) {
         std::cout << "stopping criteria occured: f_best small." << std::endl;
         std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
-        should_stop = true;
+        should_stop_run = true;
+        should_stop_optimization = true;
     }
 }
 
@@ -211,7 +212,8 @@ void CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     // <-
 
     // -> restarts
-    for (i_run = 1; i_run < n_restarts + 1; i_run++) {
+    should_stop_optimization = false;
+    for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
         int n_regime1 = n_offsprings0 * (1 << i_run);
         while (budget[0] > budget[1]) {
             double ur2 = std::pow(dist_uniform_real(mt), 2.0);

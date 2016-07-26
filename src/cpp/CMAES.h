@@ -70,7 +70,8 @@ public:
     // options
     const int n_iteration_max = (int) (1e6);
     const int n_interval_plot = 25;
-    bool should_stop;
+    bool should_stop_run;
+    bool should_stop_optimization;
 
     // plotting
     //Gnuplot gp;
