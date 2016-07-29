@@ -38,6 +38,7 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     params_mean = params_mean_;
     params_mean_old.resize(n_params);
     y_mean.resize(n_params);
+    c_invsqrt_y.resize(n_params);
     keys_offsprings.resize(n_offsprings);
     C_eigvals.resize(n_params);
     // <-

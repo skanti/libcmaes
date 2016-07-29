@@ -9,37 +9,43 @@ enum StorageType {
 };
 
 template<typename T>
-struct Matrix : public T {
-    Matrix(int n_rows_, int n_cols_) : n_rows(n_rows_), n_cols(n_cols_), T(n_rows * n_cols) {};
+struct Matrix {
+    Matrix(int n_rows_, int n_cols_) : n_rows(n_rows_), n_cols(n_cols_), data(n_rows * n_cols) {};
 
-    Matrix() : n_rows(0), n_cols(0), T(0) {};
+    Matrix() : n_rows(0), n_cols(0), data(0) {};
 
     void resize(int n_rows_, int n_cols_) {
         n_rows = n_rows_;
         n_cols = n_cols_;
-        T::resize(n_rows * n_cols);
+        data.resize(n_rows * n_cols);
     }
 
     void eye() {
         for (int j = 0; j < n_cols; j++) {
             for (int i = 0; i < n_rows; i++) {
-                this->data[j * n_rows + i] = i == j;
+                data[j * n_rows + i] = i == j;
             }
         }
     }
 
     double *get_col(int j) {
-        return this->data() + j * n_rows;
+        return data.data() + j * n_rows;
     }
 
     double &operator()(int i, int j) {
-        return this->operator[](j * n_rows + i);
+        return data[j * n_rows + i];
+    }
+
+    double *memptr() {
+        return data.data();
     }
 
     int n_rows, n_cols;
+    T data;
 };
 
 typedef std::vector<double, AlignedAllocator<double, 32>> dvec;
+typedef std::vector<dvec> dvecvec;
 typedef std::vector<int, AlignedAllocator<int, 32>> ivec;
 typedef Matrix<dvec> dmat;
 #endif

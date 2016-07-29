@@ -20,13 +20,22 @@ void SolverPool::dot(double *v1, double *v2, int n) {
     }
 }
 
-void SolverPool::least_squares(double *v1, double *v2, int n) {
-    double r = 0;
+double SolverPool::least_squares(double *v1, double *v2, int n) {
+    double sum_least_squares = 0;
     for (int i = 0; i < n; i++) {
         double e = (v1[i] - v2[i]);
-        r += e * e;
+        sum_least_squares += e * e;
+    }
+    return sum_least_squares;
+}
+
+void SolverPool::mean_vector(double *a, int n_rows_a, int n_cols_a, int ld_a, double *v, double *w) {
+
+    for (int j = 0; j < n_cols_a; j++) {
+        cblas_daxpy(n_rows_a, v[j], a + j * ld_a, 1, w, 1);
     }
 }
+
 
 void SolverPool::logspace(double *v, double a, double b, int n) {
     double d = (b - a) / (n - 1);
@@ -47,14 +56,19 @@ void SolverPool::dgemm(double *a, double *b, double *c, int n_rows_a, int n_cols
                 c, ldc);
 }
 
-void SolverPool::dgemv(double *a, double *x, double *y, int n_rows_a, int n_cols_a, int lda) {
+void
+SolverPool::dgemv(double *a, double *x, double *y, int n_rows_a, int n_cols_a, int lda, double alpha, double beta) {
     cblas_dgemv(CblasColMajor, CblasNoTrans,
                 n_rows_a, n_cols_a,
-                1.0,
+                alpha,
                 a, lda,
                 x, 1,
-                0.0,
+                beta,
                 y, 1);
+}
+
+double SolverPool::dnrm2(int n, double *x) {
+    return cblas_dnrm2(n, x, 1);
 }
 
 void SolverPool::daxpy(double *x, double *y, double a, int n) {
@@ -63,6 +77,7 @@ void SolverPool::daxpy(double *x, double *y, double a, int n) {
                 x, 1,
                 y, 1);
 }
+
 
 void SolverPool::vdmul(double *x, double *y, double *z, int n) {
     for (int i = 0; i < n; i++) {

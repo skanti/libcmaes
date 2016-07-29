@@ -35,13 +35,13 @@ public:
 
     void update_best();
 
-    double cost_function(dvec &params);
+    double cost_function(double *params);
 
     void plot(dvec &params);
 
     void optimize();
 
-    void transform_scale_shift(dvec &params, dvec &params_tss);
+    void transform_scale_shift(double *params, double *params_tss);
 
     Data *data;
     Model *model;

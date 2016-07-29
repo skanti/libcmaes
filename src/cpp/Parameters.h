@@ -24,6 +24,7 @@ struct Parameters {
     dvec f_offsprings;
     dvec w;
     dvec w_var;
+    dvec c_invsqrt_y;
     dvec y_mean;
     dvec params_mean;
     dvec params_mean_old;

@@ -10,7 +10,9 @@ struct SolverPool {
 
     static void dot(double *v1, double *v2, int n);
 
-    static void least_squares(double *v1, double *v2, int n);
+    static void mean_vector(double *a, int n_rows_a, int n_cols_a, int ld_a, double *v, double *w);
+
+    static double least_squares(double *v1, double *v2, int n);
 
     static void logspace(double *v, double a, double b, int n);
 
@@ -18,9 +20,11 @@ struct SolverPool {
     dgemm(double *a, double *b, double *c, int n_rows_a, int n_cols_a, int n_cols_b, int lda, int ldb, int ldc);
 
     static void
-    dgemv(double *a, double *x, double *y, int n_rows_a, int n_cols_a, int lda);
+    dgemv(double *a, double *x, double *y, int n_rows_a, int n_cols_a, int lda, double alpha, double beta);
 
     static void daxpy(double *x, double *y, double a, int n);
+
+    static double dnrm2(int n, double *x);
 
     static void vdmul(double *x, double *y, double *z, int n);
 };

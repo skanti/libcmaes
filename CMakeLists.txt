@@ -37,7 +37,7 @@ set(MKL_DIR /usr/local/intel/mkl)
 include_directories(${SOURCE_DIR}/cpp ${MKL_DIR}/include)
 link_directories(${MKL_DIR}/lib)
 add_library(cmaes ${SOURCE_FILES_CPP} ${SOURCE_FILES_H})
-target_link_libraries(cmaes mkl)
+target_link_libraries(cmaes -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lpthread -lm -ldl)
 
 # test
 #link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
