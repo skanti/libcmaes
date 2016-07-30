@@ -186,7 +186,9 @@ void CMAES::stopping_criteria() {
     // <-
 
     // -> sigma up tolerance
-    if (era.sigma / sigma0 < 1e20 * std::sqrt(eigval_max)) {
+    double sigma_fac = era.sigma / sigma0;
+    double sigma_up_thresh = 1e20 * std::sqrt(eigval_max);
+    if (sigma_fac / sigma0 > sigma_up_thresh) {
         std::cout << "stopping criteria occured: sigma up." << std::endl;
         std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
         should_stop_run = true;
@@ -194,7 +196,30 @@ void CMAES::stopping_criteria() {
     // <-
 
     // -> no effect axis
+    int nea = 0;
+    for (int i = 0; i < era.n_params; i++) {
+        double ei = 0.1 * era.sigma * era.C_eigvals[i];
+        for (int j = 0; j < era.n_params; j++) {
+            nea += era.params_mean[i] == era.params_mean[i] + ei * era.B(j, i);
+        }
+    }
+    if (nea > 0) {
+        std::cout << "stopping criteria occured: no effect axis." << std::endl;
+        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+        should_stop_run = true;
+    }
+    // <-
 
+    // -> no effect coordinate
+    int nec = 0;
+    for (int i = 0; i < era.n_params; i++) {
+        nec += era.params_mean[i] == era.params_mean[i] + 0.2 * era.sigma * std::sqrt(era.C(i, i));
+    }
+    if (nec > 0) {
+        std::cout << "stopping criteria occured: no effect coordinate." << std::endl;
+        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+        should_stop_run = true;
+    }
     // <-
 
 }
