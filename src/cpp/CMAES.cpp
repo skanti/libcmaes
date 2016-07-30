@@ -16,8 +16,8 @@ void CMAES::optimize() {
     while (era.i_iteration < n_iteration_max && !should_stop_run) {
         sample_offsprings();
         rank_and_sort();
-        assign_new_mean();
         update_best();
+        assign_new_mean();
         cummulative_stepsize_adaption();
         update_weights();
         update_cov_matrix();
@@ -38,13 +38,13 @@ void CMAES::sample_offsprings() {
             era.z_offsprings(i, j) = dist_normal_real(mt);
         }
     }
-    SolverPool::dgemm(era.B.memptr(), era.D.memptr(), era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
-                      era.B.n_rows, era.C.n_rows, era.BD.n_rows);
+    SolverPool::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
+                      1.0, 0, era.B.n_rows, era.C.n_rows, era.BD.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
-        SolverPool::dgemv(era.BD.memptr(), era.z_offsprings.memptr(), era.y_offsprings.memptr(), era.BD.n_rows,
-                          era.BD.n_cols, era.BD.n_rows, 0, 0);
-        std::copy(era.params_mean.data(), era.params_mean.data(), era.params_offsprings.get_col(i));
-        SolverPool::daxpy(era.y_offsprings.memptr(), era.params_offsprings.get_col(i), era.sigma, era.n_params);
+        SolverPool::dgemv(era.BD.memptr(), era.z_offsprings.get_col(i), era.y_offsprings.get_col(i), era.BD.n_rows,
+                          era.BD.n_cols, era.BD.n_rows, 1.0, 0);
+        std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
+        SolverPool::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
     }
 }
 
@@ -58,8 +58,8 @@ void CMAES::rank_and_sort() {
     // <-
 
     // -> sorting
-    std::iota(era.keys_offsprings.begin(), era.keys_offsprings.end(), 0);
-    std::sort(era.keys_offsprings.begin(), era.keys_offsprings.end(),
+    std::iota(era.keys_offsprings.data(), era.keys_offsprings.data() + era.n_offsprings, 0);
+    std::sort(era.keys_offsprings.data(), era.keys_offsprings.data() + era.n_offsprings,
               [&](std::size_t idx1, std::size_t idx2) { return era.f_offsprings[idx1] < era.f_offsprings[idx2]; });
     for (int i = 0; i < era.n_parents; i++) {
         int idx_new = era.keys_offsprings[i];
@@ -87,7 +87,7 @@ void CMAES::assign_new_mean() {
     std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_mean_old.begin());
     std::fill(era.y_mean.begin(), era.y_mean.end(), 0.0);
     std::fill(era.params_mean.begin(), era.params_mean.end(), 0.0);
-    SolverPool::mean_vector(era.params_parents_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
+    SolverPool::mean_vector(era.y_offsprings_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
                             era.y_mean.data());
     SolverPool::mean_vector(era.params_parents_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
                             era.params_mean.data());
@@ -116,7 +116,6 @@ void CMAES::cummulative_stepsize_adaption() {
 }
 
 void CMAES::update_weights() {
-
     for (int i = 0; i < era.n_offsprings; i++) {
         if (era.w[i] < 0) {
             SolverPool::dgemv(era.C_invsqrt.memptr(), era.y_offsprings_ranked.get_col(i), era.c_invsqrt_y.data(),
@@ -127,29 +126,42 @@ void CMAES::update_weights() {
     }
 }
 
+
+void CMAES::update_cov_matrix() {
+    double h1 = (1 - era.h_sig) * era.c_c * (2.0 - era.c_c);
+    dmat h2(era.n_params, era.n_params);
+    std::fill(h2.data.begin(), h2.data.end(), 0.0);
+    for (int i = 0; i < era.n_offsprings; i++) {
+        SolverPool::dger(h2.memptr(), era.y_offsprings_ranked.get_col(i), era.y_offsprings_ranked.get_col(i),
+                         era.c_mu * era.w_var[i], era.n_params, era.n_params, era.n_params);
+    }
+    dmat h3(era.n_params, era.n_params);
+    std::fill(h3.data.begin(), h3.data.end(), 0.0);
+    SolverPool::dger(h3.memptr(), era.p_c.data(), era.p_c.data(),
+                     era.c_1, era.n_params, era.n_params, era.n_params);
+    double w_sum = std::accumulate(era.w.begin(), era.w.end(), 0.0);
+    SolverPool::dgema(era.C.memptr(), era.n_params, era.n_params, era.n_params,
+                      (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * w_sum));
+    SolverPool::dgempm(era.C.memptr(), h3.memptr(), era.n_params, era.n_params, era.n_params);
+    SolverPool::dgempm(era.C.memptr(), h2.memptr(), era.n_params, era.n_params, era.n_params);
+}
+
+
 void CMAES::update_sigma() {
     era.sigma *= std::exp(era.c_s / era.d_s * (SolverPool::dnrm2(era.n_params, era.p_s.data()) / era.chi - 1.0));
 }
 
-void CMAES::update_cov_matrix() {
-    /*
-    double h1 = (1 - era.h_sig) * era.c_c * (2.0 - era.c_c);
-    dmat h2(era.n_params, era.n_params, arma::fill::zeros);
-    for (int i = 0; i < era.n_offsprings; i++) {
-        h2 += era.w_var[i] * era.y_offsprings_ranked[i] * era.y_offsprings_ranked[i].t();
-    }
-    era.C = (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * arma::sum(era.w)) * era.C
-            + era.c_1 * era.p_c * era.p_c.t() + era.c_mu * h2;
-            */
-}
-
 void CMAES::eigendecomposition() {
-    //std::cout << era.C << std::endl;
-    //era.C = arma::symmatu(era.C);
-    //arma::eig_sym(era.C_eigvals, era.B, era.C);
-    //dvec D2 = arma::sqrt(era.C_eigvals);
-    //era.D = arma::diagmat(D2);
-    //era.C_invsqrt = era.B * arma::inv(era.D) * era.B.t();
+    std::copy(era.C.memptr(), era.C.memptr() + era.n_params * era.n_params, era.B.memptr());
+    SolverPool::dsyev(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
+    SolverPool::vdsqrt(era.n_params, era.C_eigvals.data(), era.C_eigvals2.data());
+    SolverPool::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
+    SolverPool::vdinv(era.n_params, era.C_eigvals2.data(), era.C_eigvals2.data());
+    SolverPool::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
+    SolverPool::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt.memptr(), era.n_params, era.n_params,
+                      era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
+    SolverPool::dgemm(era.C_invsqrt.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params, era.n_params,
+                      era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
 }
 
 void CMAES::stopping_criteria() {

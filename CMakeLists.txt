@@ -31,13 +31,13 @@ set(SOURCE_FILES_H
 
 # dependencies
 set(ARMADILLO_DIR /usr/local/Cellar/armadillo/7.200.2)
-set(MKL_DIR /usr/local/intel/mkl)
+set(MKL_DIR /usr/local/intel/compilers_and_libraries/mac/mkl)
 #set(EIGEN_DIR /usr/local/Cellar/eigen/3.2.8)
 
 include_directories(${SOURCE_DIR}/cpp ${MKL_DIR}/include)
 link_directories(${MKL_DIR}/lib)
 add_library(cmaes ${SOURCE_FILES_CPP} ${SOURCE_FILES_H})
-target_link_libraries(cmaes -lmkl_intel_lp64 -lmkl_core -lmkl_sequential -lpthread -lm -ldl)
+target_link_libraries(cmaes mkl_intel_lp64 mkl_core mkl_sequential pthread m dl)
 
 # test
 #link_directories(${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})

@@ -41,6 +41,7 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     c_invsqrt_y.resize(n_params);
     keys_offsprings.resize(n_offsprings);
     C_eigvals.resize(n_params);
+    C_eigvals2.resize(n_params);
     // <-
 
     //-> vector of vectors
@@ -92,11 +93,13 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     C_invsqrt.resize(n_params, n_params);
     B.resize(n_params, n_params);
     D.resize(n_params, n_params);
+    D_inv.resize(n_params, n_params);
     BD.resize(n_params, n_params);
     C.eye();
     C_invsqrt.eye();
     B.eye();
     D.eye();
+    D_inv.eye();
     BD.eye();
     // <-
 
