@@ -8,7 +8,7 @@ void SolverPool::transform_scale_shift(double *params, double *params_typical, d
     double d_geno = b_geno - a_geno;
     double scale = a_pheno + d_pheno / d_geno;
     for (int i = 0; i < n; i++) {
-        params_new[i] = params[i] * params[i] * params_typical[i];
+        params_new[i] = params[i] * params[i];
     }
 }
 
@@ -34,7 +34,6 @@ void SolverPool::mean_vector(double *a, int n_rows_a, int n_cols_a, int ld_a, do
         cblas_daxpy(n_rows_a, v[j], a + j * ld_a, 1, w, 1);
     }
 }
-
 
 void SolverPool::logspace(double *v, double a, double b, int n) {
     double d = (b - a) / (n - 1);

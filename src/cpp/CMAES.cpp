@@ -167,18 +167,36 @@ void CMAES::eigendecomposition() {
 void CMAES::stopping_criteria() {
     double eigval_min = era.C_eigvals[0];
     double eigval_max = era.C_eigvals[era.n_params - 1];
+
+    // -> condition of covariance matrix
     if (eigval_max / eigval_min > 1e14) {
         std::cout << "stopping criteria occured: bad covariance condition." << std::endl;
         std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
         should_stop_run = true;
     }
+    // <-
 
+    // -> cost function already low enough
     if (f_best < 1e-10) {
         std::cout << "stopping criteria occured: f_best small." << std::endl;
         std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
         should_stop_run = true;
         should_stop_optimization = true;
     }
+    // <-
+
+    // -> sigma up tolerance
+    if (era.sigma / sigma0 < 1e20 * std::sqrt(eigval_max)) {
+        std::cout << "stopping criteria occured: sigma up." << std::endl;
+        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+        should_stop_run = true;
+    }
+    // <-
+
+    // -> no effect axis
+
+    // <-
+
 }
 
 void CMAES::transform_scale_shift(double *params, double *params_tss) {
