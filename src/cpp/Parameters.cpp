@@ -91,6 +91,7 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     // -> matrices
     C.resize(n_params, n_params);
     C_invsqrt.resize(n_params, n_params);
+    C_invsqrt_tmp.resize(n_params, n_params);
     B.resize(n_params, n_params);
     D.resize(n_params, n_params);
     D_inv.resize(n_params, n_params);

@@ -32,7 +32,7 @@ struct Matrix {
         return data.data() + j * n_rows;
     }
 
-    double &operator()(int i, int j) {
+    inline double &operator()(int i, int j) {
         return data[j * n_rows + i];
     }
 

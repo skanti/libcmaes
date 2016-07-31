@@ -42,10 +42,9 @@ void SolverPool::logspace(double *v, double a, double b, int n) {
     }
 }
 
-void
-SolverPool::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k, double alpha,
-                  double beta, int lda, int ldb, int ldc) {
-
+void SolverPool::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k,
+                       double alpha, double beta, int lda, int ldb, int ldc) {
+    // C = alpha*A*B + beat*C
     cblas_dgemm(CblasColMajor,
                 is_a_trans ? CblasTrans : CblasNoTrans, is_b_trans ? CblasTrans : CblasNoTrans,
                 m, k, n,
@@ -56,9 +55,11 @@ SolverPool::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *
                 c, ldc);
 }
 
-void SolverPool::dgemv(double *a, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
-                       double alpha, double beta) {
-    cblas_dgemv(CblasColMajor, CblasNoTrans,
+void
+SolverPool::dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
+                  double alpha, double beta) {
+    // y = alpha*A*x + beta*y,
+    cblas_dgemv(CblasColMajor, is_a_trans ? CblasTrans : CblasNoTrans,
                 n_rows_a, n_cols_a,
                 alpha,
                 a, lda,
@@ -112,10 +113,12 @@ void SolverPool::vdsqrtinv(int n, double *a, double *y) {
 }
 
 void SolverPool::vdsqrt(int n, double *a, double *y) {
+    // y = sqrt(a)
     vdSqrt(n, a, y);
 }
 
 void SolverPool::vdinv(int n, double *a, double *y) {
+    // y = inv(a)
     vdInv(n, a, y);
 }
 

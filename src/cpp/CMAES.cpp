@@ -39,10 +39,12 @@ void CMAES::sample_offsprings() {
         }
     }
     SolverPool::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
-                      1.0, 0, era.B.n_rows, era.C.n_rows, era.BD.n_rows);
+                      1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
+
+    SolverPool::dgemm(era.BD.memptr(), 0, era.z_offsprings.memptr(), 0, era.y_offsprings.memptr(), era.BD.n_rows,
+                      era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.D.n_rows,
+                      era.y_offsprings.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
-        SolverPool::dgemv(era.BD.memptr(), era.z_offsprings.get_col(i), era.y_offsprings.get_col(i), era.BD.n_rows,
-                          era.BD.n_cols, era.BD.n_rows, 1.0, 0);
         std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
         SolverPool::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
     }
@@ -97,7 +99,7 @@ void CMAES::assign_new_mean() {
 void CMAES::cummulative_stepsize_adaption() {
     // -> p sigma
     std::fill(era.p_s.begin(), era.p_s.end(), 0.0);
-    SolverPool::dgemv(era.C_invsqrt.memptr(), era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
+    SolverPool::dgemv(era.C_invsqrt.memptr(), 0, era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
                       era.n_params, era.p_s_fact, 1.0 - era.c_s);
     // <-
 
@@ -118,14 +120,13 @@ void CMAES::cummulative_stepsize_adaption() {
 void CMAES::update_weights() {
     for (int i = 0; i < era.n_offsprings; i++) {
         if (era.w[i] < 0) {
-            SolverPool::dgemv(era.C_invsqrt.memptr(), era.y_offsprings_ranked.get_col(i), era.c_invsqrt_y.data(),
+            SolverPool::dgemv(era.C_invsqrt.memptr(), 0, era.y_offsprings_ranked.get_col(i), era.c_invsqrt_y.data(),
                               era.n_params, era.n_params, era.n_params, 1.0, 0.0);
             double h = SolverPool::dnrm2(era.n_params, era.c_invsqrt_y.data());
             era.w_var[i] = era.w[i] * era.n_params / (h * h);
         }
     }
 }
-
 
 void CMAES::update_cov_matrix() {
     double h1 = (1 - era.h_sig) * era.c_c * (2.0 - era.c_c);
@@ -146,21 +147,20 @@ void CMAES::update_cov_matrix() {
     SolverPool::dgempm(era.C.memptr(), h2.memptr(), era.n_params, era.n_params, era.n_params);
 }
 
-
 void CMAES::update_sigma() {
     era.sigma *= std::exp(era.c_s / era.d_s * (SolverPool::dnrm2(era.n_params, era.p_s.data()) / era.chi - 1.0));
 }
 
 void CMAES::eigendecomposition() {
-    std::copy(era.C.memptr(), era.C.memptr() + era.n_params * era.n_params, era.B.memptr());
+    std::copy(era.C.data.begin(), era.C.data.end(), era.B.data.begin());
     SolverPool::dsyev(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
     SolverPool::vdsqrt(era.n_params, era.C_eigvals.data(), era.C_eigvals2.data());
     SolverPool::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
     SolverPool::vdinv(era.n_params, era.C_eigvals2.data(), era.C_eigvals2.data());
     SolverPool::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
-    SolverPool::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt.memptr(), era.n_params, era.n_params,
+    SolverPool::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt_tmp.memptr(), era.n_params, era.n_params,
                       era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
-    SolverPool::dgemm(era.C_invsqrt.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params, era.n_params,
+    SolverPool::dgemm(era.C_invsqrt_tmp.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params, era.n_params,
                       era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
 }
 
@@ -240,6 +240,7 @@ double CMAES::cost_function(double *params) {
 }
 
 void CMAES::plot(dvec &params) {
+    std::cout << era.f_offsprings[0] << std::endl;
     //cost_function(params);
     //gp << "set yrange [] reverse\n";
     //gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
