@@ -33,8 +33,8 @@ void CMAES::optimize() {
 }
 
 void CMAES::sample_offsprings() {
-    for (int j = 0; j < era.n_params; j++) {
-        for (int i = 0; i < era.n_offsprings; i++) {
+    for (int j = 0; j < era.n_offsprings; j++) {
+        for (int i = 0; i < era.n_params; i++) {
             era.z_offsprings(i, j) = dist_normal_real(mt);
         }
     }
@@ -42,7 +42,7 @@ void CMAES::sample_offsprings() {
                       1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
 
     SolverPool::dgemm(era.BD.memptr(), 0, era.z_offsprings.memptr(), 0, era.y_offsprings.memptr(), era.BD.n_rows,
-                      era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.D.n_rows,
+                      era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.z_offsprings.n_rows,
                       era.y_offsprings.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
         std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
