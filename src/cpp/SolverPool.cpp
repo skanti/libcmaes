@@ -55,9 +55,8 @@ void SolverPool::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, dou
                 c, ldc);
 }
 
-void
-SolverPool::dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
-                  double alpha, double beta) {
+void SolverPool::dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
+                       double alpha, double beta) {
     // y = alpha*A*x + beta*y,
     cblas_dgemv(CblasColMajor, is_a_trans ? CblasTrans : CblasNoTrans,
                 n_rows_a, n_cols_a,
@@ -66,6 +65,17 @@ SolverPool::dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a,
                 x, 1,
                 beta,
                 y, 1);
+}
+
+
+void
+SolverPool::dgemv_c(double *a, double *b, double *x, int n_rows_a, int n_cols_a, int ld_a, int ld_b, double alpha) {
+    // B = alpha * x |* A <- column-wise multiplication
+    for (int j = 0; j < n_cols_a; j++) {
+        for (int i = 0; i < n_rows_a; i++) {
+            b[j * ld_b + i] = alpha * x[i] * a[j * ld_a + i];
+        }
+    }
 }
 
 double SolverPool::dnrm2(int n, double *x) {

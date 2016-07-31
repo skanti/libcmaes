@@ -158,10 +158,13 @@ void CMAES::eigendecomposition() {
     SolverPool::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
     SolverPool::vdinv(era.n_params, era.C_eigvals2.data(), era.C_eigvals2.data());
     SolverPool::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
+
     SolverPool::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt_tmp.memptr(), era.n_params, era.n_params,
                       era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
-    SolverPool::dgemm(era.C_invsqrt_tmp.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params, era.n_params,
-                      era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
+    SolverPool::dgemm(era.C_invsqrt_tmp.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params,
+                      era.n_params, era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
+    //SolverPool::dgemv_c(era.C_invsqrt.memptr(), era.C_invsqrt.memptr(), era.C_eigvals2.data(), era.n_params,
+    //                    era.n_params, era.n_params, era.n_params, 1.0);
 }
 
 void CMAES::stopping_criteria() {

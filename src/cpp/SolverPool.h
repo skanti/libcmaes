@@ -15,12 +15,14 @@ struct SolverPool {
 
     static void logspace(double *v, double a, double b, int n);
 
-    static void
-    dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k, double alpha,
-          double beta, int lda, int ldb, int ldc);
+    static void dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k,
+                      double alpha, double beta, int lda, int ldb, int ldc);
 
-    static void dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda, double alpha,
-                          double beta);
+    static void dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
+                      double alpha, double beta);
+
+
+    static void dgemv_c(double *a, double *b, double *x, int n_rows_a, int n_cols_a, int ld_a, int ld_b, double alpha);
 
     static void dgema(double *a, int n_rows_a, int n_cols_a, int ld_a, double alpha);
 
