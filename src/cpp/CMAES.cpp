@@ -88,18 +88,14 @@ void CMAES::update_best() {
 void CMAES::assign_new_mean() {
     std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_mean_old.begin());
     std::fill(era.y_mean.begin(), era.y_mean.end(), 0.0);
-    //std::fill(era.params_mean.begin(), era.params_mean.end(), 0.0);
     SolverPool::mean_vector(era.y_offsprings_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
                             era.y_mean.data());
-    //SolverPool::mean_vector(era.params_parents_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
-    //                        era.params_mean.data());
     SolverPool::daxpy(era.y_mean.data(), era.params_mean.data(), era.sigma, era.n_params);
 
 }
 
 void CMAES::cummulative_stepsize_adaption() {
     // -> p sigma
-    //std::fill(era.p_s.begin(), era.p_s.end(), 0.0);
     SolverPool::dgemv(era.C_invsqrt.memptr(), 0, era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
                       era.n_params, era.p_s_fact, 1.0 - era.c_s);
     // <-
@@ -112,8 +108,6 @@ void CMAES::cummulative_stepsize_adaption() {
     // <-
 
     // -> p cov
-    //std::fill(era.p_c.begin(), era.p_c.end(), 0.0);
-    //SolverPool::daxpy(era.p_c.data(), era.p_c.data(), 1.0 - era.c_c, era.n_params);
     SolverPool::dax(era.p_c.data(), era.p_c.data(), 1.0 - era.c_c, era.n_params);
     SolverPool::daxpy(era.y_mean.data(), era.p_c.data(), era.h_sig * era.p_c_fact, era.n_params);
     // <-
