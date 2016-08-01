@@ -8,9 +8,10 @@
 #include "SolverPool.h"
 #include "Types.h"
 #include "Data.h"
+#include <string>
 
 struct ToyData1 : public Data {
-    void populate() {
+    void create_synthetic_data() {
         n_data = 50;
         dim = 2;
         x.resize(n_data);
@@ -31,6 +32,33 @@ struct ToyData1 : public Data {
             y(i, 0) = r.real();
             y(i, 1) = r.imag();
         }
+    }
+
+    void read_data_from_file(std::string filename) {
+        dim = 2;
+        // -> read
+        std::string line;
+        std::ifstream myfile(filename);
+        if (myfile.is_open()) {
+            std::getline(myfile, line);
+            n_data = std::stoi(line);
+            x.resize(n_data);
+            y.resize(n_data, dim);
+            for (int i = 0; i < n_data; i++) {
+                std::getline(myfile, line);
+                x[i] = std::stod(line);
+            }
+            for (int i = 0; i < n_data; i++) {
+                std::getline(myfile, line);
+                y(i, 0) = std::stod(line);
+            }
+            for (int i = 0; i < n_data; i++) {
+                std::getline(myfile, line);
+                y(i, 1) = std::stod(line);
+            }
+            myfile.close();
+        }
+        // <-
     }
 
 };
@@ -68,7 +96,7 @@ struct ToyModel1 : public Model {
 int main() {
     //-> data
     ToyData1 toy_data;
-    toy_data.populate();
+    toy_data.read_data_from_file("/Users/amon/grive/uni/sofc/code/evaluate_data/z106.dat");
     // <-
 
     // -> model
@@ -81,12 +109,6 @@ int main() {
     double sigma0 = 1;
     cmaes.fmin(x0, sigma0, x_typical, 10, 999);
 
-    // plotting
-    /*
-    dvec params(std::vector<double>(
-    { 5.3783e-07, 0.90633, 0.10979, 0.24789, 0.60554, 0.35638, 0.00032026, 0.86119, 0.35704, 0.00014935, 1.038 }));
-    toy_model.plot_model(toy_data.x, params);
-     */
-    //
+
     return 0;
 }

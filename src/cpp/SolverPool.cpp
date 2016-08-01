@@ -8,7 +8,7 @@ void SolverPool::transform_scale_shift(double *params, double *params_typical, d
     double d_geno = b_geno - a_geno;
     double scale = a_pheno + d_pheno / d_geno;
     for (int i = 0; i < n; i++) {
-        params_new[i] = params[i] * params[i] * params_typical[i];
+        params_new[i] = params[i] * params[i];
     }
 }
 

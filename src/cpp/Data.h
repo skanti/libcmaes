@@ -9,7 +9,7 @@ struct Data {
     dvec x; // <- 1-D array
     dmat y; // <- N-D array
 
-    virtual void populate() = 0;
+    virtual void read_data_from_file(std::string filename) = 0;
 };
 
 
