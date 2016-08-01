@@ -99,7 +99,7 @@ void CMAES::assign_new_mean() {
 
 void CMAES::cummulative_stepsize_adaption() {
     // -> p sigma
-    std::fill(era.p_s.begin(), era.p_s.end(), 0.0);
+    //std::fill(era.p_s.begin(), era.p_s.end(), 0.0);
     SolverPool::dgemv(era.C_invsqrt.memptr(), 0, era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
                       era.n_params, era.p_s_fact, 1.0 - era.c_s);
     // <-
@@ -112,8 +112,9 @@ void CMAES::cummulative_stepsize_adaption() {
     // <-
 
     // -> p cov
-    std::fill(era.p_c.begin(), era.p_c.end(), 0.0);
-    SolverPool::daxpy(era.p_c.data(), era.p_c.data(), 1.0 - era.c_c, era.n_params);
+    //std::fill(era.p_c.begin(), era.p_c.end(), 0.0);
+    //SolverPool::daxpy(era.p_c.data(), era.p_c.data(), 1.0 - era.c_c, era.n_params);
+    SolverPool::dax(era.p_c.data(), era.p_c.data(), 1.0 - era.c_c, era.n_params);
     SolverPool::daxpy(era.y_mean.data(), era.p_c.data(), era.h_sig * era.p_c_fact, era.n_params);
     // <-
 }
@@ -199,7 +200,6 @@ void CMAES::stopping_criteria() {
     }
     // <-
 
-    /*
     // -> no effect axis
     int nea = 0;
     for (int i = 0; i < era.n_params; i++) {
@@ -214,7 +214,6 @@ void CMAES::stopping_criteria() {
         should_stop_run = true;
     }
     // <-
-    */
 
     // -> no effect coordinate
     int nec = 0;

@@ -46,6 +46,8 @@ struct SolverPool {
 
     static void daxpy(double *x, double *y, double a, int n);
 
+    static void dax(double *x, double *y, double a, int n);
+
     static void dger(double *a, double *x, double *y, double alpha, int n_rows_a, int n_cols_a, int ld_a);
 
     static double dnrm2(int n, double *x);

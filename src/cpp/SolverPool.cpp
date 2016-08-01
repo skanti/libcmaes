@@ -140,6 +140,13 @@ void SolverPool::daxpy(double *x, double *y, double a, int n) {
                 y, 1);
 }
 
+void SolverPool::dax(double *x, double *y, double a, int n) {
+    // y = a*x
+    for (int i = 0; i < n; i++) {
+        y[i] = a * x[i];
+    }
+}
+
 
 void SolverPool::vdmul(double *x, double *y, double *z, int n) {
     for (int i = 0; i < n; i++) {
