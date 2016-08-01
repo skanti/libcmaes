@@ -194,7 +194,6 @@ void CMAES::stopping_criteria() {
     }
     // <-
 
-    /*
     // -> no effect axis
     int nea = 0;
     for (int i = 0; i < era.n_params; i++) {
@@ -209,7 +208,6 @@ void CMAES::stopping_criteria() {
         should_stop_run = true;
     }
     // <-
-    */
 
     // -> no effect coordinate
     int nec = 0;
@@ -250,7 +248,7 @@ void CMAES::plot(dvec &params) {
     //std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.025e9)));
 }
 
-void CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed) {
+dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed) {
     // -> settings
     mt.seed(seed);
     n_params = model->n_params;
@@ -313,5 +311,6 @@ void CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
         std::cout << params_best_unscaled[i] << " ";
     // <-
     std::cout << std::endl;
+    return params_best_unscaled;
 }
 

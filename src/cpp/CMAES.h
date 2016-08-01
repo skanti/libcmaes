@@ -13,7 +13,7 @@ class CMAES {
 public:
     CMAES(Data *data_, Model *model_);
 
-    void fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed);
+    dvec fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed);
 
     void sample_offsprings();
 
