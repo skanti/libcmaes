@@ -194,6 +194,7 @@ void CMAES::stopping_criteria() {
     }
     // <-
 
+    /*
     // -> no effect axis
     int nea = 0;
     for (int i = 0; i < era.n_params; i++) {
@@ -208,6 +209,7 @@ void CMAES::stopping_criteria() {
         should_stop_run = true;
     }
     // <-
+    */
 
     // -> no effect coordinate
     int nec = 0;

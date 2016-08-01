@@ -78,8 +78,8 @@ int main() {
     CMAES cmaes(&toy_data, &toy_model);
     dvec x0(toy_model.n_params, 1.0);
     dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
-    double sigma0 = 2;
-    cmaes.fmin(x0, sigma0, x_typical, 7, 999);
+    double sigma0 = 1;
+    cmaes.fmin(x0, sigma0, x_typical, 10, 999);
 
     // plotting
     /*
