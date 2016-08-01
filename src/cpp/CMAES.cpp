@@ -291,7 +291,7 @@ void CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     should_stop_optimization = false;
     for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
         int n_regime1 = n_offsprings0 * (1 << i_run);
-        while (budget[0] > budget[1]) {
+        while (budget[0] > budget[1] && !should_stop_optimization) {
             double ur2 = std::pow(dist_uniform_real(mt), 2.0);
             int n_offsprings = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
             double us = dist_uniform_real(mt);
