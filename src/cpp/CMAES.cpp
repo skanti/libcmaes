@@ -198,6 +198,7 @@ void CMAES::stopping_criteria() {
     }
     // <-
 
+    /*
     // -> no effect axis
     int nea = 0;
     for (int i = 0; i < era.n_params; i++) {
@@ -212,6 +213,7 @@ void CMAES::stopping_criteria() {
         should_stop_run = true;
     }
     // <-
+    */
 
     // -> no effect coordinate
     int nec = 0;
@@ -314,5 +316,6 @@ void CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     for (int i = 0; i < era.n_params; i++)
         std::cout << params_best_unscaled[i] << " ";
     // <-
+    std::cout << std::endl;
 }
 
