@@ -133,6 +133,7 @@ void SolverPool::vdinv(int n, double *a, double *y) {
 }
 
 void SolverPool::daxpy(double *x, double *y, double a, int n) {
+    // y = a*x + y
     cblas_daxpy(n,
                 a,
                 x, 1,

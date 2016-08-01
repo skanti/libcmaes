@@ -88,11 +88,12 @@ void CMAES::update_best() {
 void CMAES::assign_new_mean() {
     std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_mean_old.begin());
     std::fill(era.y_mean.begin(), era.y_mean.end(), 0.0);
-    std::fill(era.params_mean.begin(), era.params_mean.end(), 0.0);
+    //std::fill(era.params_mean.begin(), era.params_mean.end(), 0.0);
     SolverPool::mean_vector(era.y_offsprings_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
                             era.y_mean.data());
-    SolverPool::mean_vector(era.params_parents_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
-                            era.params_mean.data());
+    //SolverPool::mean_vector(era.params_parents_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
+    //                        era.params_mean.data());
+    SolverPool::daxpy(era.y_mean.data(), era.params_mean.data(), era.sigma, era.n_params);
 
 }
 
