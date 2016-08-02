@@ -149,7 +149,7 @@ void CMAES::update_sigma() {
 
 void CMAES::eigendecomposition() {
     std::copy(era.C.data.begin(), era.C.data.end(), era.B.data.begin());
-    SolverPool::dsyev(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
+    SolverPool::dsyevd(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
     SolverPool::vdsqrt(era.n_params, era.C_eigvals.data(), era.C_eigvals2.data());
     SolverPool::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
     SolverPool::vdinv(era.n_params, era.C_eigvals2.data(), era.C_eigvals2.data());

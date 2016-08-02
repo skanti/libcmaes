@@ -28,7 +28,7 @@ struct SolverPool {
 
     static void dgempm(double *a, double *b, int n_rows_a, int n_cols_a, int ld_a);
 
-    static void dsyev(double *a, double *w, int n_rows_a, int n_cols_a, int ld_a);
+    static void dsyevd(double *a, double *w, int n_rows_a, int n_cols_a, int ld_a);
 
     static void vdsqrtinv(int n, double *a, double *y);
 

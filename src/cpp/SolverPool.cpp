@@ -107,13 +107,13 @@ void SolverPool::dgempm(double *a, double *b, int n_rows_a, int n_cols_a, int ld
     }
 }
 
-void SolverPool::dsyev(double *a, double *w, int n_rows_a, int n_cols_a, int ld_a) {
+void SolverPool::dsyevd(double *a, double *w, int n_rows_a, int n_cols_a, int ld_a) {
 
-    LAPACKE_dsyev(LAPACK_COL_MAJOR,
-                  'V', 'L',
-                  n_rows_a,
-                  a, ld_a,
-                  w);
+    LAPACKE_dsyevd(LAPACK_COL_MAJOR,
+                   'V', 'L',
+                   n_rows_a,
+                   a, ld_a,
+                   w);
 }
 
 void SolverPool::vdsqrtinv(int n, double *a, double *y) {
