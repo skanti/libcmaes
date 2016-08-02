@@ -24,8 +24,6 @@ I found this very partical.
 ## Performance and Optimization
 The heavy duty work is mostly done by Intel MKL BLAS level 2 and BLAS level 3. One eigenvalue/eigenvector decomposition for real symmetric matrices is done by Intel MKL LAPACK module ```dsyevd``` - which uses the 'divide-and-conquer' algorithm that computes different results than the standard method but it is faster for larger matrices.
 
-### Computational order and bottlenecks
-
 Here is a little info about critical methods in the main thread (in the right order):
 
 ```N```= Number of parameters. (Usually < 200)
