@@ -4,7 +4,7 @@ A slim and fast C++ BIPOP-aCMA-ES library. (Intel MKL usage).
 
 ## Description
 
-This is a C++11 implementation of the BIPOP-aCMA-ES algorithm. The algorithm is referenced 
+This is a C++11/Intel MKL implementation of the BIPOP-aCMA-ES algorithm. The algorithm is referenced 
 from "The CMA Evolution Strategy: A Tutorial, Nikolaus Hansen, 2016". Apparently, he has a new setting for the default 
 negative weights (since 2016).
 
@@ -20,6 +20,33 @@ Other templated libraries require hours (if not days) to really unravel the comp
 
 It is possible to watch the convergence online. That is, the cost-function is plotted via gnuplot interval-wise.
 I found this very partical.
+
+## Performance and Optimization
+The heavy duty work is mostly done by Intel MKL BLAS level 2 and BLAS level 3. One eigenvalue/eigenvector decomposition for real symmetric matrices is done by Intel MKL LAPACK module ```dsyevd``` - which uses the 'divide-and-conquer' algorithm that computes different results than the standard method but it is faster for larger matrices.
+
+### Computational order and bottlenecks
+
+Here is a little info about critical methods in the main thread (in the right order):
+
+```N```= Number of parameters. (Usually < 200)
+
+```M```= Number of offsprings. (Can grow as much as 2^13)
+
+#### sample offsprings
+
+- O(N\*M): sample of standard normal random variables via mersenne-twister. **UNOPTIMIZED SO FAR. USE OF STL**.
+- O(N\*N\*M): dgemm
+- O(N^3): dgemm
+
+#### rank and sort
+
+- O(log2 M): binary sorting **UNOPTIMIZED SO FAR. USE OF STL ```sort```**.
+
+#### cost function
+- O(M): evaluation of cost-function. **DANGEROUS BECAUSE USER-PROVIDED**.
+
+#### eigen decomposition
+- O(N^3):  divide-and-conquer eigen decomposition.
 
 ## How-To install
 
