@@ -1,7 +1,7 @@
 #include "CMAES.h"
 #include <fstream>
 #include <complex>
-#include "SolverPool.h"
+#include "MathKernels.h"
 #include <glob.h>
 #include<libgen.h>
 
@@ -12,7 +12,7 @@ struct ToyData1 : public Data {
         x.resize(n_data);
         y.resize(n_data, dim);
         // fill
-        SolverPool::logspace(x.data(), -1, 5, n_data);
+        MathKernels::logspace(x.data(), -1, 5, n_data);
         dvec params(
                 {5.3783e-07, 0.90633, 0.10979, 0.24789, 0.60554, 0.35638, 0.00032026, 0.86119, 0.35704, 0.00014935,
                  1.038});

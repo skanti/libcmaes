@@ -1,8 +1,8 @@
 
 #include <cmath>
-#include "SolverPool.h"
+#include "MathKernels.h"
 
-void SolverPool::transform_scale_shift(double *params, double *params_typical, double a_geno,
+void MathKernels::transform_scale_shift(double *params, double *params_typical, double a_geno,
                                        double b_geno, double a_pheno, double b_pheno, int n, double *params_new) {
     double d_pheno = b_pheno - a_pheno;
     double d_geno = b_geno - a_geno;
@@ -12,14 +12,14 @@ void SolverPool::transform_scale_shift(double *params, double *params_typical, d
     }
 }
 
-void SolverPool::dot(double *v1, double *v2, int n) {
+void MathKernels::dot(double *v1, double *v2, int n) {
     double r = 0;
     for (int i = 0; i < n; i++) {
         r += v1[i] * v2[i];
     }
 }
 
-double SolverPool::least_squares(double *v1, double *v2, int n) {
+double MathKernels::least_squares(double *v1, double *v2, int n) {
     double sum_least_squares = 0;
     for (int i = 0; i < n; i++) {
         double e = (v1[i] - v2[i]);
@@ -28,21 +28,21 @@ double SolverPool::least_squares(double *v1, double *v2, int n) {
     return sum_least_squares;
 }
 
-void SolverPool::mean_vector(double *a, int n_rows_a, int n_cols_a, int ld_a, double *v, double *w) {
+void MathKernels::mean_vector(double *a, int n_rows_a, int n_cols_a, int ld_a, double *v, double *w) {
 
     for (int j = 0; j < n_cols_a; j++) {
         cblas_daxpy(n_rows_a, v[j], a + j * ld_a, 1, w, 1);
     }
 }
 
-void SolverPool::logspace(double *v, double a, double b, int n) {
+void MathKernels::logspace(double *v, double a, double b, int n) {
     double d = (b - a) / (n - 1);
     for (int i = 0; i < n; i++) {
         v[i] = std::pow(10, d * i);
     }
 }
 
-void SolverPool::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k,
+void MathKernels::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k,
                        double alpha, double beta, int lda, int ldb, int ldc) {
     // C = alpha*A*B + beat*C
     cblas_dgemm(CblasColMajor,
@@ -55,7 +55,7 @@ void SolverPool::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, dou
                 c, ldc);
 }
 
-void SolverPool::dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
+void MathKernels::dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
                        double alpha, double beta) {
     // y = alpha*A*x + beta*y,
     cblas_dgemv(CblasColMajor, is_a_trans ? CblasTrans : CblasNoTrans,
@@ -69,7 +69,7 @@ void SolverPool::dgemv(double *a, int is_a_trans, double *x, double *y, int n_ro
 
 
 void
-SolverPool::dgemv_c(double *a, double *b, double *x, int n_rows_a, int n_cols_a, int ld_a, int ld_b, double alpha) {
+MathKernels::dgemv_c(double *a, double *b, double *x, int n_rows_a, int n_cols_a, int ld_a, int ld_b, double alpha) {
     // B = alpha * x |* A <- column-wise multiplication
     for (int j = 0; j < n_cols_a; j++) {
         for (int i = 0; i < n_rows_a; i++) {
@@ -78,11 +78,11 @@ SolverPool::dgemv_c(double *a, double *b, double *x, int n_rows_a, int n_cols_a,
     }
 }
 
-double SolverPool::dnrm2(int n, double *x) {
+double MathKernels::dnrm2(int n, double *x) {
     return cblas_dnrm2(n, x, 1);
 }
 
-void SolverPool::dger(double *a, double *x, double *y, double alpha, int n_rows_a, int n_cols_a, int ld_a) {
+void MathKernels::dger(double *a, double *x, double *y, double alpha, int n_rows_a, int n_cols_a, int ld_a) {
     cblas_dger(CblasColMajor, n_cols_a, n_rows_a,
                alpha,
                x, 1,
@@ -91,7 +91,7 @@ void SolverPool::dger(double *a, double *x, double *y, double alpha, int n_rows_
 }
 
 
-void SolverPool::dgema(double *a, int n_rows_a, int n_cols_a, int ld_a, double alpha) {
+void MathKernels::dgema(double *a, int n_rows_a, int n_cols_a, int ld_a, double alpha) {
     for (int j = 0; j < n_cols_a; j++) {
         for (int i = 0; i < n_rows_a; i++) {
             a[j * ld_a + i] *= alpha;
@@ -99,7 +99,7 @@ void SolverPool::dgema(double *a, int n_rows_a, int n_cols_a, int ld_a, double a
     }
 }
 
-void SolverPool::dgempm(double *a, double *b, int n_rows_a, int n_cols_a, int ld_a) {
+void MathKernels::dgempm(double *a, double *b, int n_rows_a, int n_cols_a, int ld_a) {
     for (int j = 0; j < n_cols_a; j++) {
         for (int i = 0; i < n_rows_a; i++) {
             a[j * ld_a + i] += b[j * ld_a + i];
@@ -107,7 +107,7 @@ void SolverPool::dgempm(double *a, double *b, int n_rows_a, int n_cols_a, int ld
     }
 }
 
-void SolverPool::dsyevd(double *a, double *w, int n_rows_a, int n_cols_a, int ld_a) {
+void MathKernels::dsyevd(double *a, double *w, int n_rows_a, int n_cols_a, int ld_a) {
 
     LAPACKE_dsyevd(LAPACK_COL_MAJOR,
                    'V', 'L',
@@ -116,23 +116,23 @@ void SolverPool::dsyevd(double *a, double *w, int n_rows_a, int n_cols_a, int ld
                    w);
 }
 
-void SolverPool::vdsqrtinv(int n, double *a, double *y) {
+void MathKernels::vdsqrtinv(int n, double *a, double *y) {
     for (int i = 0; i < n; i++) {
         y[i] = 1.0 / std::sqrt(a[i]);
     }
 }
 
-void SolverPool::vdsqrt(int n, double *a, double *y) {
+void MathKernels::vdsqrt(int n, double *a, double *y) {
     // y = sqrt(a)
     vdSqrt(n, a, y);
 }
 
-void SolverPool::vdinv(int n, double *a, double *y) {
+void MathKernels::vdinv(int n, double *a, double *y) {
     // y = inv(a)
     vdInv(n, a, y);
 }
 
-void SolverPool::daxpy(double *x, double *y, double a, int n) {
+void MathKernels::daxpy(double *x, double *y, double a, int n) {
     // y = a*x + y
     cblas_daxpy(n,
                 a,
@@ -140,7 +140,7 @@ void SolverPool::daxpy(double *x, double *y, double a, int n) {
                 y, 1);
 }
 
-void SolverPool::dax(double *x, double *y, double a, int n) {
+void MathKernels::dax(double *x, double *y, double a, int n) {
     // y = a*x
     for (int i = 0; i < n; i++) {
         y[i] = a * x[i];
@@ -148,7 +148,7 @@ void SolverPool::dax(double *x, double *y, double a, int n) {
 }
 
 
-void SolverPool::vdmul(double *x, double *y, double *z, int n) {
+void MathKernels::vdmul(double *x, double *y, double *z, int n) {
     for (int i = 0; i < n; i++) {
         z[i] = x[i] * y[i];
     }

@@ -1,6 +1,6 @@
 #include "CMAES.h"
 #include <thread>
-#include "SolverPool.h"
+#include "MathKernels.h"
 #include "mkl.h"
 
 CMAES::CMAES(Data *data_, Model *model_)
@@ -38,15 +38,15 @@ void CMAES::sample_offsprings() {
             era.z_offsprings(i, j) = dist_normal_real(mt);
         }
     }
-    SolverPool::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
+    MathKernels::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
                       1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
 
-    SolverPool::dgemm(era.BD.memptr(), 0, era.z_offsprings.memptr(), 0, era.y_offsprings.memptr(), era.BD.n_rows,
+    MathKernels::dgemm(era.BD.memptr(), 0, era.z_offsprings.memptr(), 0, era.y_offsprings.memptr(), era.BD.n_rows,
                       era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.z_offsprings.n_rows,
                       era.y_offsprings.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
         std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
-        SolverPool::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
+        MathKernels::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
     }
 }
 
@@ -88,37 +88,37 @@ void CMAES::update_best() {
 void CMAES::assign_new_mean() {
     std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_mean_old.begin());
     std::fill(era.y_mean.begin(), era.y_mean.end(), 0.0);
-    SolverPool::mean_vector(era.y_offsprings_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
+    MathKernels::mean_vector(era.y_offsprings_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
                             era.y_mean.data());
-    SolverPool::daxpy(era.y_mean.data(), era.params_mean.data(), era.sigma, era.n_params);
+    MathKernels::daxpy(era.y_mean.data(), era.params_mean.data(), era.sigma, era.n_params);
 
 }
 
 void CMAES::cummulative_stepsize_adaption() {
     // -> p sigma
-    SolverPool::dgemv(era.C_invsqrt.memptr(), 0, era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
+    MathKernels::dgemv(era.C_invsqrt.memptr(), 0, era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
                       era.n_params, era.p_s_fact, 1.0 - era.c_s);
     // <-
 
     // -> h sigma
-    double p_s_norm = SolverPool::dnrm2(era.n_params, era.p_s.data());
+    double p_s_norm = MathKernels::dnrm2(era.n_params, era.p_s.data());
     double p_s_thresh = (1.4 + 2.0 / (era.n_params + 1))
                         * std::sqrt(1.0 - std::pow(1.0 - era.c_s, 2.0 * (era.i_iteration + 1))) * era.chi;
     era.h_sig = p_s_norm < p_s_thresh;
     // <-
 
     // -> p cov
-    SolverPool::dax(era.p_c.data(), era.p_c.data(), 1.0 - era.c_c, era.n_params);
-    SolverPool::daxpy(era.y_mean.data(), era.p_c.data(), era.h_sig * era.p_c_fact, era.n_params);
+    MathKernels::dax(era.p_c.data(), era.p_c.data(), 1.0 - era.c_c, era.n_params);
+    MathKernels::daxpy(era.y_mean.data(), era.p_c.data(), era.h_sig * era.p_c_fact, era.n_params);
     // <-
 }
 
 void CMAES::update_weights() {
     for (int i = 0; i < era.n_offsprings; i++) {
         if (era.w[i] < 0) {
-            SolverPool::dgemv(era.C_invsqrt.memptr(), 0, era.y_offsprings_ranked.get_col(i), era.c_invsqrt_y.data(),
+            MathKernels::dgemv(era.C_invsqrt.memptr(), 0, era.y_offsprings_ranked.get_col(i), era.c_invsqrt_y.data(),
                               era.n_params, era.n_params, era.n_params, 1.0, 0.0);
-            double h = SolverPool::dnrm2(era.n_params, era.c_invsqrt_y.data());
+            double h = MathKernels::dnrm2(era.n_params, era.c_invsqrt_y.data());
             era.w_var[i] = era.w[i] * era.n_params / (h * h);
         }
     }
@@ -129,37 +129,37 @@ void CMAES::update_cov_matrix() {
     dmat h2(era.n_params, era.n_params);
     std::fill(h2.data.begin(), h2.data.end(), 0.0);
     for (int i = 0; i < era.n_offsprings; i++) {
-        SolverPool::dger(h2.memptr(), era.y_offsprings_ranked.get_col(i), era.y_offsprings_ranked.get_col(i),
+        MathKernels::dger(h2.memptr(), era.y_offsprings_ranked.get_col(i), era.y_offsprings_ranked.get_col(i),
                          era.c_mu * era.w_var[i], era.n_params, era.n_params, era.n_params);
     }
     dmat h3(era.n_params, era.n_params);
     std::fill(h3.data.begin(), h3.data.end(), 0.0);
-    SolverPool::dger(h3.memptr(), era.p_c.data(), era.p_c.data(),
+    MathKernels::dger(h3.memptr(), era.p_c.data(), era.p_c.data(),
                      era.c_1, era.n_params, era.n_params, era.n_params);
     double w_sum = std::accumulate(era.w.begin(), era.w.end(), 0.0);
-    SolverPool::dgema(era.C.memptr(), era.n_params, era.n_params, era.n_params,
+    MathKernels::dgema(era.C.memptr(), era.n_params, era.n_params, era.n_params,
                       (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * w_sum));
-    SolverPool::dgempm(era.C.memptr(), h3.memptr(), era.n_params, era.n_params, era.n_params);
-    SolverPool::dgempm(era.C.memptr(), h2.memptr(), era.n_params, era.n_params, era.n_params);
+    MathKernels::dgempm(era.C.memptr(), h3.memptr(), era.n_params, era.n_params, era.n_params);
+    MathKernels::dgempm(era.C.memptr(), h2.memptr(), era.n_params, era.n_params, era.n_params);
 }
 
 void CMAES::update_sigma() {
-    era.sigma *= std::exp(era.c_s / era.d_s * (SolverPool::dnrm2(era.n_params, era.p_s.data()) / era.chi - 1.0));
+    era.sigma *= std::exp(era.c_s / era.d_s * (MathKernels::dnrm2(era.n_params, era.p_s.data()) / era.chi - 1.0));
 }
 
 void CMAES::eigendecomposition() {
     std::copy(era.C.data.begin(), era.C.data.end(), era.B.data.begin());
-    SolverPool::dsyevd(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
-    SolverPool::vdsqrt(era.n_params, era.C_eigvals.data(), era.C_eigvals2.data());
-    SolverPool::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
-    SolverPool::vdinv(era.n_params, era.C_eigvals2.data(), era.C_eigvals2.data());
-    SolverPool::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
+    MathKernels::dsyevd(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
+    MathKernels::vdsqrt(era.n_params, era.C_eigvals.data(), era.C_eigvals2.data());
+    MathKernels::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
+    MathKernels::vdinv(era.n_params, era.C_eigvals2.data(), era.C_eigvals2.data());
+    MathKernels::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
 
-    SolverPool::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt_tmp.memptr(), era.n_params, era.n_params,
+    MathKernels::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt_tmp.memptr(), era.n_params, era.n_params,
                       era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
-    SolverPool::dgemm(era.C_invsqrt_tmp.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params,
+    MathKernels::dgemm(era.C_invsqrt_tmp.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params,
                       era.n_params, era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
-    //SolverPool::dgemv_c(era.C_invsqrt.memptr(), era.C_invsqrt.memptr(), era.C_eigvals2.data(), era.n_params,
+    //MathKernels::dgemv_c(era.C_invsqrt.memptr(), era.C_invsqrt.memptr(), era.C_eigvals2.data(), era.n_params,
     //                    era.n_params, era.n_params, era.n_params, 1.0);
 }
 
@@ -224,7 +224,7 @@ void CMAES::stopping_criteria() {
 }
 
 void CMAES::transform_scale_shift(double *params, double *params_tss) {
-    SolverPool::transform_scale_shift(params, x_typical.data(), 0, 100, 1e-4, 1e-1, n_params, params_tss);
+    MathKernels::transform_scale_shift(params, x_typical.data(), 0, 100, 1e-4, 1e-1, n_params, params_tss);
 }
 
 double CMAES::cost_function(double *params) {
@@ -233,7 +233,7 @@ double CMAES::cost_function(double *params) {
     model->evaluate(data->x, params_tmp);
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
-        cost += SolverPool::least_squares(model->y.get_col(i), data->y.get_col(i), data->n_data);
+        cost += MathKernels::least_squares(model->y.get_col(i), data->y.get_col(i), data->n_data);
     }
     return cost;
 }

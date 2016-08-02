@@ -14,7 +14,7 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 set(SOURCE_DIR ./src)
 set(SOURCE_FILES_CPP
         ${SOURCE_DIR}/cpp/CMAES.cpp
-        ${SOURCE_DIR}/cpp/SolverPool.cpp
+        ${SOURCE_DIR}/cpp/MathKernels.cpp
         ${SOURCE_DIR}/cpp/Parameters.cpp
         )
 
@@ -26,7 +26,7 @@ set(SOURCE_FILES_H
         ${SOURCE_DIR}/cpp/Types.h
         ${SOURCE_DIR}/cpp/AlignedAllocator.h
         ${SOURCE_DIR}/cpp/GnuplotIostream.h
-        src/cpp/SolverPool.h)
+        src/cpp/MathKernels.h)
 
 
 # dependencies

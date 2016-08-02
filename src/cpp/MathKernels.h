@@ -3,7 +3,7 @@
 
 #include "mkl.h"
 
-struct SolverPool {
+struct MathKernels {
     static void transform_scale_shift(double *params, double *params_typical, double a_geno,
                                       double b_geno, double a_pheno, double b_pheno, int n, double *params_new);
 
