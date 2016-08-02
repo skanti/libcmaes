@@ -3,6 +3,7 @@
 #include <complex>
 #include "SolverPool.h"
 #include <glob.h>
+#include<libgen.h>
 
 struct ToyData1 : public Data {
     void create_synthetic_data() {
@@ -122,8 +123,10 @@ int main() {
     std::string dir_target = "/Users/amon/grive/uni/sofc/700C/700C_fitted";
     glob(std::string(dir_src + "/*").c_str(), GLOB_TILDE, NULL, &glob_result);
     for (unsigned int i = 0; i < glob_result.gl_pathc; i++) {
-        std::cout << "file " << i << "/" << glob_result.gl_pathc;
+        std::cout << "file " << i << "/" << glob_result.gl_pathc << std::endl;
         std::string filename = glob_result.gl_pathv[i];
+        std::string basename1(basename((char *) filename.c_str()));
+        std::string rawname = basename1.substr(0, basename1.find_last_of("."));
         //-> data
         ToyData1 toy_data;
         toy_data.read_data_from_file(filename);
@@ -137,10 +140,9 @@ int main() {
         dvec x0(toy_model.n_params, 0.0);
         dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
         double sigma0 = 1;
-        dvec x = cmaes.fmin(x0, sigma0, x_typical, 5, 999 + i);
-        write_solution_to_file(dir_target + "/test.dat", x, toy_model.n_params, toy_data.x, toy_model.y,
+        dvec x = cmaes.fmin(x0, sigma0, x_typical, 12, 999 + i);
+        write_solution_to_file(dir_target + "/" + rawname + ".sol", x, toy_model.n_params, toy_data.x, toy_model.y,
                                toy_data.y, toy_data.n_data, toy_model.dim);
-        std::exit(0);
     }
     return 0;
 }

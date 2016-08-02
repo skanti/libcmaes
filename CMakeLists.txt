@@ -3,7 +3,7 @@ project(libcmaes CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE 0)
 set(CMAKE_CXX_COMPILER "/usr/local/bin/icpc")
-set(OPTIMIZATION_FLAGS "-O3 -march=native -mtune=native")
+set(OPTIMIZATION_FLAGS "-O3 -qopenmp -march=native -mtune=native")
 #set(OPTIMIZATION_FLAGS)
 set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${OPTIMIZATION_FLAGS} -std=c++14 ${DEFINES}")
 
