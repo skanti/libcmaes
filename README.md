@@ -1,6 +1,6 @@
 # libcmaes
 
-A slim and fast C++ BIPOP-aCMA-ES library. (Intel MKL usage).
+A slim and fast C++ BIPOP-aCMA-ES library.
 
 ## Description
 
