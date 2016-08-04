@@ -3,7 +3,9 @@
 #include <complex>
 #include "MathKernels.h"
 #include <glob.h>
+#include <unistd.h>
 #include<libgen.h>
+#include <vector>
 
 struct ToyData1 : public Data {
     void create_synthetic_data() {
@@ -117,32 +119,59 @@ write_solution_to_file(std::string filename, dvec &params, int n_params, dvec &x
     file.close();
 }
 
-int main() {
+void
+append_solution_to_file(std::string filename, std::string rawname, dvec &sol, int n_sol) {
+    std::ofstream file;
+    file.open(filename.c_str(), std::ios_base::app);
+    file << rawname;
+    for (int i = 0; i < n_sol; i++)
+        file << " " << sol[i];
+    file << std::endl;
+    file.close();
+}
+
+dvec sort_jiao(dvec &params) {
+    std::vector<std::pair<double, double>> v;
+    v.push_back({params[3], params[2]});
+    v.push_back({params[6], params[5]});
+    v.push_back({params[9], params[8]});
+    std::sort(v.begin(), v.end());
+    return dvec({params[1], v[0].second, v[1].second, v[2].second});
+}
+
+
+int main(int argc, char *argv[]) {
     glob_t glob_result;
-    std::string dir_src = "/Users/amon/grive/uni/sofc/700C/700C_filtered";
-    std::string dir_target = "/Users/amon/grive/uni/sofc/700C/700C_fitted";
+    std::string dir_src = argv[1];
+    std::string dir_target = argv[2];
     glob(std::string(dir_src + "/*").c_str(), GLOB_TILDE, NULL, &glob_result);
     for (unsigned int i = 0; i < glob_result.gl_pathc; i++) {
         std::cout << "file " << i << "/" << glob_result.gl_pathc << std::endl;
         std::string filename = glob_result.gl_pathv[i];
         std::string basename1(basename((char *) filename.c_str()));
         std::string rawname = basename1.substr(0, basename1.find_last_of("."));
-        //-> data
-        ToyData1 toy_data;
-        toy_data.read_data_from_file(filename);
-        // <-
+        std::string targetname = dir_target + "/" + rawname + ".sol";
+        if (access(targetname.c_str(), F_OK) == -1) {
+            std::cout << "Fitting: " << rawname << std::endl;
+            //-> data
+            ToyData1 toy_data;
+            toy_data.read_data_from_file(filename);
+            // <-
 
-        // -> model
-        ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
-        // <-
+            // -> model
+            ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
+            // <-
 
-        CMAES cmaes(&toy_data, &toy_model);
-        dvec x0(toy_model.n_params, 0.0);
-        dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
-        double sigma0 = 1;
-        dvec x = cmaes.fmin(x0, sigma0, x_typical, 12, 999 + i);
-        write_solution_to_file(dir_target + "/" + rawname + ".sol", x, toy_model.n_params, toy_data.x, toy_model.y,
-                               toy_data.y, toy_data.n_data, toy_model.dim);
+            CMAES cmaes(&toy_data, &toy_model);
+            dvec x0(toy_model.n_params, 0.0);
+            dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
+            double sigma0 = 1;
+            dvec x = cmaes.fmin(x0, sigma0, x_typical, 12, 999 + i);
+            dvec sol = sort_jiao(x);
+            append_solution_to_file(dir_target + "/params.txt", rawname, sol, 4);
+            write_solution_to_file(targetname, x, toy_model.n_params, toy_data.x, toy_model.y, toy_data.y,
+                                   toy_data.n_data, toy_data.dim);
+        }
     }
     return 0;
 }

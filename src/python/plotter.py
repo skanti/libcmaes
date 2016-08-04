@@ -3,8 +3,8 @@ import glob
 import os.path
 import matplotlib.pyplot as plt
 
-dir = "/Users/amon/grive/uni/sofc/700C"
-all_files = glob.glob(dir + "/700C_fitted/*.sol")
+dir = "/Users/amon/grive/uni/sofc/denso"
+all_files = glob.glob(dir + "/denso_fitted/*.sol")
 for filename in all_files:
     basename = os.path.basename(filename)
     rawname = os.path.splitext(basename)[0]
@@ -42,6 +42,6 @@ for filename in all_files:
     plt.ylabel("y")
     plt.xlabel("x")
     plt.gca().invert_yaxis()
-    plt.savefig(dir + "/700C_fitted/" + rawname + ".png")
+    plt.savefig(dir + "/denso_fitted/" + rawname + ".png")
     # plt.legend(["y (data)"])
     # plt.show()

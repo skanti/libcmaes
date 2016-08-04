@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.0)
 project(libcmaes CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE 0)

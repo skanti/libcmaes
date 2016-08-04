@@ -39,11 +39,11 @@ void CMAES::sample_offsprings() {
         }
     }
     MathKernels::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
-                      1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
+                       1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
 
     MathKernels::dgemm(era.BD.memptr(), 0, era.z_offsprings.memptr(), 0, era.y_offsprings.memptr(), era.BD.n_rows,
-                      era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.z_offsprings.n_rows,
-                      era.y_offsprings.n_rows);
+                       era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.z_offsprings.n_rows,
+                       era.y_offsprings.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
         std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
         MathKernels::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
@@ -89,7 +89,7 @@ void CMAES::assign_new_mean() {
     std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_mean_old.begin());
     std::fill(era.y_mean.begin(), era.y_mean.end(), 0.0);
     MathKernels::mean_vector(era.y_offsprings_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
-                            era.y_mean.data());
+                             era.y_mean.data());
     MathKernels::daxpy(era.y_mean.data(), era.params_mean.data(), era.sigma, era.n_params);
 
 }
@@ -97,7 +97,7 @@ void CMAES::assign_new_mean() {
 void CMAES::cummulative_stepsize_adaption() {
     // -> p sigma
     MathKernels::dgemv(era.C_invsqrt.memptr(), 0, era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
-                      era.n_params, era.p_s_fact, 1.0 - era.c_s);
+                       era.n_params, era.p_s_fact, 1.0 - era.c_s);
     // <-
 
     // -> h sigma
@@ -117,7 +117,7 @@ void CMAES::update_weights() {
     for (int i = 0; i < era.n_offsprings; i++) {
         if (era.w[i] < 0) {
             MathKernels::dgemv(era.C_invsqrt.memptr(), 0, era.y_offsprings_ranked.get_col(i), era.c_invsqrt_y.data(),
-                              era.n_params, era.n_params, era.n_params, 1.0, 0.0);
+                               era.n_params, era.n_params, era.n_params, 1.0, 0.0);
             double h = MathKernels::dnrm2(era.n_params, era.c_invsqrt_y.data());
             era.w_var[i] = era.w[i] * era.n_params / (h * h);
         }
@@ -130,15 +130,15 @@ void CMAES::update_cov_matrix() {
     std::fill(h2.data.begin(), h2.data.end(), 0.0);
     for (int i = 0; i < era.n_offsprings; i++) {
         MathKernels::dger(h2.memptr(), era.y_offsprings_ranked.get_col(i), era.y_offsprings_ranked.get_col(i),
-                         era.c_mu * era.w_var[i], era.n_params, era.n_params, era.n_params);
+                          era.c_mu * era.w_var[i], era.n_params, era.n_params, era.n_params);
     }
     dmat h3(era.n_params, era.n_params);
     std::fill(h3.data.begin(), h3.data.end(), 0.0);
     MathKernels::dger(h3.memptr(), era.p_c.data(), era.p_c.data(),
-                     era.c_1, era.n_params, era.n_params, era.n_params);
+                      era.c_1, era.n_params, era.n_params, era.n_params);
     double w_sum = std::accumulate(era.w.begin(), era.w.end(), 0.0);
     MathKernels::dgema(era.C.memptr(), era.n_params, era.n_params, era.n_params,
-                      (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * w_sum));
+                       (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * w_sum));
     MathKernels::dgempm(era.C.memptr(), h3.memptr(), era.n_params, era.n_params, era.n_params);
     MathKernels::dgempm(era.C.memptr(), h2.memptr(), era.n_params, era.n_params, era.n_params);
 }
@@ -156,9 +156,9 @@ void CMAES::eigendecomposition() {
     MathKernels::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
 
     MathKernels::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt_tmp.memptr(), era.n_params, era.n_params,
-                      era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
+                       era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
     MathKernels::dgemm(era.C_invsqrt_tmp.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params,
-                      era.n_params, era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
+                       era.n_params, era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
     //MathKernels::dgemv_c(era.C_invsqrt.memptr(), era.C_invsqrt.memptr(), era.C_eigvals2.data(), era.n_params,
     //                    era.n_params, era.n_params, era.n_params, 1.0);
 }
@@ -239,7 +239,8 @@ double CMAES::cost_function(double *params) {
 }
 
 void CMAES::plot(dvec &params) {
-    std::cout << era.f_offsprings[0] << std::endl;
+    if (!std::isnan(era.f_offsprings[0]))
+        std::cout << era.f_offsprings[0] << std::endl;
     //cost_function(params);
     //gp << "set yrange [] reverse\n";
     //gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";

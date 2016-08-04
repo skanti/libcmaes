@@ -70,7 +70,7 @@ public:
 
     // options
     const int n_iteration_max = (int) (1e6);
-    const int n_interval_plot = 50;
+    const int n_interval_plot = 100;
     bool should_stop_run;
     bool should_stop_optimization;
 

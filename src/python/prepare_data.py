@@ -38,23 +38,48 @@ class EISData:
         # <-
 
     @staticmethod
-    def filter():
-        EISData.z.real = spsig.medfilt(EISData.z.real)
-        EISData.z.imag = spsig.medfilt(EISData.z.imag)
+    def filter(n_kernel):
+        s = int(n_kernel / 2)  # <- margin
+        e = s + 1
+        # -> copy
+        z = np.copy(EISData.z)
+        # <-
+        # -> filter
+        z.real = spsig.medfilt(z.real, n_kernel + 2)
+        z.imag = spsig.medfilt(z.imag, n_kernel + 2)
+        z[:e] = EISData.z[:e]
+        z[-e:] = EISData.z[-e:]
+        z.real = spsig.wiener(z.real, mysize=n_kernel, noise=0.01)
+        z.imag = spsig.wiener(z.imag, mysize=n_kernel, noise=0.01)
+        # <-
+        # -> crop
+        EISData.z[s:-s] = z[s:-s]
+        # <-
 
 
-dir = "/Users/amon/grive/uni/sofc/700C"
-all_files = glob.glob(dir + "/700C_raw/*.z")
+dir = "/Users/amon/grive/uni/sofc/denso"
+all_files = glob.glob(dir + "/denso_raw/*.z")
+i = 0
 for filename in all_files:
     basename = os.path.basename(filename)
     rawname = os.path.splitext(basename)[0]
-    filename_i = dir + '/700C_filtered/' + rawname + '.dat'
-    if os.path.isfile(filename_i) is not True:
-        EISData.load_data(filename)
-        EISData.filter()
-        np.savetxt(filename_i, [EISData.n], fmt='%d')
-        f = open(filename_i, 'ab')
-        np.savetxt(f, EISData.w)
-        np.savetxt(f, EISData.z.real)
-        np.savetxt(f, EISData.z.imag)
-        f.close()
+    filename_i = dir + '/denso_filtered/' + rawname + '.dat'
+    # if os.path.isfile(filename_i) is not True:
+    print(rawname)
+    EISData.load_data(filename)
+    plt.figure(figsize=(15, 5))
+    plt.subplot(1, 2, 1)
+    plt.gca().invert_yaxis()
+    plt.scatter(EISData.z.real, EISData.z.imag, color='r', marker='o', alpha=0.5)
+    EISData.filter(3)
+    plt.subplot(1, 2, 2)
+    plt.scatter(EISData.z.real, EISData.z.imag, color='g', marker='o', alpha=0.5)
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    plt.show()
+    np.savetxt(filename_i, [EISData.n], fmt='%d')
+    f = open(filename_i, 'ab')
+    np.savetxt(f, EISData.w)
+    np.savetxt(f, EISData.z.real)
+    np.savetxt(f, EISData.z.imag)
+    f.close()
