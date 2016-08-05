@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>
+#include <zconf.h>
 
 struct ToyData1 : public Data {
     void create_synthetic_data() {
@@ -146,7 +147,7 @@ int main(int argc, char *argv[]) {
     std::string dir_src = argv[1];
     std::string dir_target = argv[2];
     glob(std::string(dir_src + "/*.dat").c_str(), GLOB_TILDE, NULL, &glob_result);
-    for (unsigned int i = 0; i < 1; i++) {
+    for (unsigned int i = 0; i < glob_result.gl_pathc; i++) {
         std::cout << "***********************************************************" << std::endl;
         std::cout << "***********************************************************" << std::endl;
         std::cout << "file " << i << "/" << glob_result.gl_pathc << std::endl;
@@ -154,27 +155,27 @@ int main(int argc, char *argv[]) {
         std::string basename1(basename((char *) filename.c_str()));
         std::string rawname = basename1.substr(0, basename1.find_last_of("."));
         std::string targetname = dir_target + "/" + rawname + ".sol";
-        //if (access(targetname.c_str(), F_OK) == -1) {
-        std::cout << "Fitting: " << rawname << std::endl;
-        //-> data
-        ToyData1 toy_data;
-        toy_data.read_data_from_file(filename);
-        // <-
+        if (access(targetname.c_str(), F_OK) == -1) {
+            std::cout << "Fitting: " << rawname << std::endl;
+            //-> data
+            ToyData1 toy_data;
+            toy_data.read_data_from_file(filename);
+            // <-
 
-        // -> model
-        ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
-        // <-
+            // -> model
+            ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
+            // <-
 
-        CMAES cmaes(&toy_data, &toy_model);
-        dvec x0(toy_model.n_params, 0.1);
-        dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
-        double sigma0 = 1;
-        dvec x = cmaes.fmin(x0, sigma0, x_typical, 12, 999 + i);
-        dvec sol = sort_jiao(x);
-        append_solution_to_file(dir_target + "/params.txt", rawname, sol, 4);
-        write_solution_to_file(targetname, x, toy_model.n_params, toy_data.x, toy_model.y, toy_data.y,
-                               toy_data.n_data, toy_data.dim);
-        //}
+            CMAES cmaes(&toy_data, &toy_model);
+            dvec x0(toy_model.n_params, 0.1);
+            dvec x_typical({1.0e-07, 1.0, 0.1, 0.1, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-4, 1.0});
+            double sigma0 = 1;
+            dvec x = cmaes.fmin(x0, sigma0, x_typical, 12, 999 + i);
+            dvec sol = sort_jiao(x);
+            append_solution_to_file(dir_target + "/params.txt", rawname, sol, 4);
+            write_solution_to_file(targetname, x, toy_model.n_params, toy_data.x, toy_model.y, toy_data.y,
+                                   toy_data.n_data, toy_data.dim);
+        }
     }
     return 0;
 }

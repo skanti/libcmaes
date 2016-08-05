@@ -53,6 +53,7 @@ void CMAES::sample_offsprings() {
 
 void CMAES::rank_and_sort() {
     // -> rank by cost-function
+#pragma omp parallel for
     for (int i = 0; i < era.n_offsprings; i++) {
         double f_cand = cost_function(era.params_offsprings.get_col(i));
         era.f_offsprings[i] = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
@@ -60,8 +61,10 @@ void CMAES::rank_and_sort() {
     era.i_func_eval += era.n_offsprings;
     i_func_eval_tot += era.n_offsprings;
     // <-
+
     // -> sorting
     std::iota(era.keys_offsprings.data(), era.keys_offsprings.data() + era.n_offsprings, 0);
+    //LAPACKE_dlasrt ('I', era.n_offsprings, nullptr );
     std::sort(era.keys_offsprings.data(), era.keys_offsprings.data() + era.n_offsprings,
               [&](std::size_t idx1, std::size_t idx2) { return era.f_offsprings[idx1] < era.f_offsprings[idx2]; });
     for (int i = 0; i < era.n_parents; i++) {
@@ -239,17 +242,6 @@ double CMAES::cost_function(double *params) {
     dvec params_tmp(era.n_params);
     transform_scale_shift(params, params_tmp.data());
     model->evaluate(data->x, params_tmp);
-    /*
-    for (int i = 0; i < era.n_params; i++) {
-        std::cout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << params[i] << " " << params_tmp[i]
-                  << std::endl;
-    }
-    for (int i = 0; i < data->n_data; i++) {
-        std::cout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << model->y(i, 0) << " "
-                  << model->y(i, 1) << std::endl;
-    }
-    exit(1);
-     */
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
         cost += MathKernels::least_squares(model->y.get_col(i), data->y.get_col(i), data->n_data);
