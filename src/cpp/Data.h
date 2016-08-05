@@ -2,7 +2,7 @@
 #define LIBCMAES_DATA_H
 
 #include "Types.h"
-#include <vector>
+#include <string>
 
 struct Data {
     int n_data, dim;

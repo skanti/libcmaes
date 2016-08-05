@@ -1,6 +1,7 @@
 #ifndef LIBCMAES_TYPES_H
 #define LIBCMAES_TYPES_H
 
+#include <vector>
 //#include "AlignedAllocator.h"
 
 enum StorageType {

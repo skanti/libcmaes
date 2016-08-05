@@ -1,7 +1,6 @@
 #ifndef LIBCMAES_CMAES_H
 #define LIBCMAES_CMAES_H
 
-#include <random>
 #include "Data.h"
 #include "Types.h"
 #include "Model.h"
@@ -66,9 +65,6 @@ public:
 
     // random
     VSLStreamStatePtr rnd_stream;
-    //std::mt19937 mt;
-    //std::normal_distribution<double> dist_normal_real;
-    //std::uniform_real_distribution<double> dist_uniform_real;
 
     // options
     const int n_iteration_max = 5000;

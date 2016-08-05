@@ -1,8 +1,9 @@
 #include "CMAES.h"
-#include <thread>
 #include "MathKernels.h"
 #include "mkl.h"
 #include <iostream>
+#include <numeric>
+#include <iomanip>
 
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_) {
@@ -38,12 +39,6 @@ void CMAES::optimize() {
 void CMAES::sample_offsprings() {
     vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, rnd_stream, era.n_params * era.n_offsprings,
                   era.z_offsprings.data.data(), 0.0, 1.0);
-    //for (int j = 0; j < era.n_offsprings; j++) {
-    //    for (int i = 0; i < era.n_params; i++) {
-    //        era.z_offsprings(i, j) = dist_uniform_real(mt);
-    //    }
-    //}
-
     MathKernels::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
                        1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
 
@@ -54,24 +49,17 @@ void CMAES::sample_offsprings() {
         std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
         MathKernels::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
     }
-    /*
-    for (int j = 0; j < era.n_offsprings; j++) {
-        for (int i = 0; i < era.n_params; i++) {
-            std::cout << "j: " << j << " i: " << i << " " << era.z_offsprings(i, j) << std::endl;
-        }
-    }
-     */
 }
 
 void CMAES::rank_and_sort() {
     // -> rank by cost-function
     for (int i = 0; i < era.n_offsprings; i++) {
-        era.f_offsprings[i] = cost_function(era.params_offsprings.get_col(i));
+        double f_cand = cost_function(era.params_offsprings.get_col(i));
+        era.f_offsprings[i] = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
     }
     era.i_func_eval += era.n_offsprings;
     i_func_eval_tot += era.n_offsprings;
     // <-
-
     // -> sorting
     std::iota(era.keys_offsprings.data(), era.keys_offsprings.data() + era.n_offsprings, 0);
     std::sort(era.keys_offsprings.data(), era.keys_offsprings.data() + era.n_offsprings,
@@ -244,13 +232,24 @@ void CMAES::stopping_criteria() {
 }
 
 void CMAES::transform_scale_shift(double *params, double *params_tss) {
-    MathKernels::transform_scale_shift(params, x_typical.data(), 0, 100, 1e-4, 1e-1, n_params, params_tss);
+    MathKernels::transform_scale_shift(params, x_typical.data(), 0, 100, 1e-4, 1e-1, era.n_params, params_tss);
 }
 
 double CMAES::cost_function(double *params) {
-    dvec params_tmp(n_params);
+    dvec params_tmp(era.n_params);
     transform_scale_shift(params, params_tmp.data());
     model->evaluate(data->x, params_tmp);
+    /*
+    for (int i = 0; i < era.n_params; i++) {
+        std::cout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << params[i] << " " << params_tmp[i]
+                  << std::endl;
+    }
+    for (int i = 0; i < data->n_data; i++) {
+        std::cout << std::setprecision(std::numeric_limits<double>::digits10 + 1) << model->y(i, 0) << " "
+                  << model->y(i, 1) << std::endl;
+    }
+    exit(1);
+     */
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
         cost += MathKernels::least_squares(model->y.get_col(i), data->y.get_col(i), data->n_data);
@@ -286,22 +285,21 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     // <-
 
     // -> prepare fmin
+    n_offsprings0 = (int) (4 + 3 * std::log(n_params));
+    n_offsprings = n_offsprings0;
+    era.init(n_offsprings, n_params, x0, sigma0);
     params_best.resize(n_params);
     params_best = x0;
-    f_best = std::isnan(cost_function(params_best.data())) ? std::numeric_limits<double>::infinity()
-                                                           : cost_function(params_best.data());
+    double f_cand = cost_function(params_best.data());
+    f_best = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
     i_func_eval_tot = 0;
     int budget[2] = {0, 0};
     // <-
 
     // -> first run
-    n_offsprings0 = (int) (4 + 3 * std::log(n_params));
-    n_offsprings = n_offsprings0;
-    era.init(n_offsprings, n_params, x0, sigma0);
     optimize();
     budget[0] += era.i_func_eval;
     // <-
-    //exit(0);
     // -> restarts
     should_stop_optimization = false;
     for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
