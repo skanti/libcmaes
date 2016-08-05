@@ -1637,7 +1637,7 @@ namespace gnuplotio {
 
 // This holds the file handle that gnuplot commands will be sent to.  The purpose of this
 // wrapper is twofold:
-// 1. It allows storing the FILE* before it gets passed to the boost::iostreams::stream
+// 1. It allows storing the FILE* before it gets passed to the boost::iostreams::rnd_stream
 //    constructor (which is a base class of the main Gnuplot class).  This is accomplished
 //    via multiple inheritance as described at http://stackoverflow.com/a/3821756/1048959
 // 2. It remembers whether the handle needs to be closed via fclose or pclose.
@@ -1671,7 +1671,7 @@ namespace gnuplotio {
 
     class Gnuplot :
             // Some setup needs to be done before obtaining the file descriptor that gets passed to
-            // boost::iostreams::stream.  This is accomplished by using a multiple inheritance trick,
+            // boost::iostreams::rnd_stream.  This is accomplished by using a multiple inheritance trick,
             // as described at http://stackoverflow.com/a/3821756/1048959
             private FileHandleWrapper,
             public boost::iostreams::stream<boost::iostreams::file_descriptor_sink> {
@@ -2050,28 +2050,28 @@ namespace gnuplotio {
 
 template <typename T, int N>
 struct BinfmtSender<blitz::TinyVector<T, N> > {
-    static void send(std::ostream &stream) {
+    static void send(std::ostream &rnd_stream) {
         for(int i=0; i<N; i++) {
-            BinfmtSender<T>::send(stream);
+            BinfmtSender<T>::send(rnd_stream);
         }
     }
 };
 
 template <typename T, int N>
 struct TextSender<blitz::TinyVector<T, N> > {
-    static void send(std::ostream &stream, const blitz::TinyVector<T, N> &v) {
+    static void send(std::ostream &rnd_stream, const blitz::TinyVector<T, N> &v) {
         for(int i=0; i<N; i++) {
-            if(i) stream << " ";
-            TextSender<T>::send(stream, v[i]);
+            if(i) rnd_stream << " ";
+            TextSender<T>::send(rnd_stream, v[i]);
         }
     }
 };
 
 template <typename T, int N>
 struct BinarySender<blitz::TinyVector<T, N> > {
-    static void send(std::ostream &stream, const blitz::TinyVector<T, N> &v) {
+    static void send(std::ostream &rnd_stream, const blitz::TinyVector<T, N> &v) {
         for(int i=0; i<N; i++) {
-            BinarySender<T>::send(stream, v[i]);
+            BinarySender<T>::send(rnd_stream, v[i]);
         }
     }
 };

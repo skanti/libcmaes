@@ -8,7 +8,7 @@ elseif (APPLE)
     set(CMAKE_CXX_COMPILER "/usr/local/bin/icpc")
 endif ()
 
-set(OPTIMIZATION_FLAGS "-O3 -qopenmp -march=native -mtune=native")
+set(OPTIMIZATION_FLAGS "")
 set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${OPTIMIZATION_FLAGS} -std=c++11")
 
 set(CMAKE_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
@@ -45,3 +45,9 @@ target_link_libraries(cmaes mkl_intel_lp64 mkl_core mkl_sequential pthread m dl)
 
 add_executable(libcmaes_example ./example/main.cpp)
 target_link_libraries(libcmaes_example cmaes)
+
+if (APPLE)
+    add_custom_command(TARGET libcmaes_example POST_BUILD
+            COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/send_remote.sh
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+endif ()

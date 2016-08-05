@@ -146,7 +146,7 @@ int main(int argc, char *argv[]) {
     std::string dir_src = argv[1];
     std::string dir_target = argv[2];
     glob(std::string(dir_src + "/*.dat").c_str(), GLOB_TILDE, NULL, &glob_result);
-    for (unsigned int i = 0; i < glob_result.gl_pathc; i++) {
+    for (unsigned int i = 0; i < 1; i++) {
         std::cout << "***********************************************************" << std::endl;
         std::cout << "***********************************************************" << std::endl;
         std::cout << "file " << i << "/" << glob_result.gl_pathc << std::endl;
@@ -154,7 +154,7 @@ int main(int argc, char *argv[]) {
         std::string basename1(basename((char *) filename.c_str()));
         std::string rawname = basename1.substr(0, basename1.find_last_of("."));
         std::string targetname = dir_target + "/" + rawname + ".sol";
-        if (access(targetname.c_str(), F_OK) == -1) {
+        //if (access(targetname.c_str(), F_OK) == -1) {
             std::cout << "Fitting: " << rawname << std::endl;
             //-> data
             ToyData1 toy_data;
@@ -174,7 +174,7 @@ int main(int argc, char *argv[]) {
             append_solution_to_file(dir_target + "/params.txt", rawname, sol, 4);
             write_solution_to_file(targetname, x, toy_model.n_params, toy_data.x, toy_model.y, toy_data.y,
                                    toy_data.n_data, toy_data.dim);
-        }
+        //}
     }
     return 0;
 }

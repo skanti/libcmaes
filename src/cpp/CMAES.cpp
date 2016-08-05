@@ -5,7 +5,7 @@
 #include <iostream>
 
 CMAES::CMAES(Data *data_, Model *model_)
-        : data(data_), model(model_), dist_normal_real(0, 1), dist_uniform_real(0, 1) {
+        : data(data_), model(model_) {
 };
 
 void CMAES::optimize() {
@@ -36,11 +36,14 @@ void CMAES::optimize() {
 }
 
 void CMAES::sample_offsprings() {
-    for (int j = 0; j < era.n_offsprings; j++) {
-        for (int i = 0; i < era.n_params; i++) {
-            era.z_offsprings(i, j) = dist_normal_real(mt);
-        }
-    }
+    vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, rnd_stream, era.n_params * era.n_offsprings,
+                  era.z_offsprings.data.data(), 0.0, 1.0);
+    //for (int j = 0; j < era.n_offsprings; j++) {
+    //    for (int i = 0; i < era.n_params; i++) {
+    //        era.z_offsprings(i, j) = dist_uniform_real(mt);
+    //    }
+    //}
+
     MathKernels::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
                        1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
 
@@ -51,6 +54,13 @@ void CMAES::sample_offsprings() {
         std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
         MathKernels::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
     }
+    /*
+    for (int j = 0; j < era.n_offsprings; j++) {
+        for (int i = 0; i < era.n_params; i++) {
+            std::cout << "j: " << j << " i: " << i << " " << era.z_offsprings(i, j) << std::endl;
+        }
+    }
+     */
 }
 
 void CMAES::rank_and_sort() {
@@ -262,7 +272,7 @@ void CMAES::plot(dvec &params) {
 
 dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed) {
     // -> settings
-    mt.seed(seed);
+    vslNewStream(&rnd_stream, VSL_BRNG_MT19937, seed);
     n_params = model->n_params;
     i_run = 0;
     // <-
@@ -291,15 +301,17 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     optimize();
     budget[0] += era.i_func_eval;
     // <-
-
+    //exit(0);
     // -> restarts
     should_stop_optimization = false;
     for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
         int n_regime1 = n_offsprings0 * (1 << i_run);
         while (budget[0] > budget[1] && !should_stop_optimization) {
-            double ur2 = std::pow(dist_uniform_real(mt), 2.0);
+            double u[2];
+            vdRngUniform(VSL_RNG_METHOD_UNIFORM_STD, rnd_stream, 2, u, 0, 1);
+            double ur2 = std::pow(u[0], 2.0);
             int n_offsprings = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
-            double us = dist_uniform_real(mt);
+            double us = u[1];
             double sigma_regime2 = sigma0 * 2.0 * std::pow(10, -2.0 * us);
             era.init(n_offsprings, n_params, params_best, sigma_regime2);
             optimize();
@@ -324,5 +336,6 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
         std::cout << " " << params_best_unscaled[i] << " ";
     std::cout << std::endl;
     return params_best_unscaled;
+
 }
 

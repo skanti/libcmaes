@@ -6,6 +6,7 @@
 #include "Types.h"
 #include "Model.h"
 #include "Parameters.h"
+#include "mkl_vsl.h"
 //#include "GnuplotIostream.h"
 
 
@@ -64,9 +65,10 @@ public:
     int i_func_eval_tot;
 
     // random
-    std::mt19937 mt;
-    std::normal_distribution<double> dist_normal_real;
-    std::uniform_real_distribution<double> dist_uniform_real;
+    VSLStreamStatePtr rnd_stream;
+    //std::mt19937 mt;
+    //std::normal_distribution<double> dist_normal_real;
+    //std::uniform_real_distribution<double> dist_uniform_real;
 
     // options
     const int n_iteration_max = 5000;
