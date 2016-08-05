@@ -2,7 +2,12 @@ cmake_minimum_required(VERSION 3.0)
 project(libcmaes CXX)
 
 set(CMAKE_VERBOSE_MAKEFILE 0)
-set(CMAKE_CXX_COMPILER "/usr/local/bin/icpc")
+if (LINUX)
+    set(CMAKE_CXX_COMPILER "icpc")
+elseif (APPLE)
+    set(CMAKE_CXX_COMPILER "/usr/local/bin/icpc")
+endif ()
+
 set(OPTIMIZATION_FLAGS "-O3 -qopenmp -march=native -mtune=native")
 set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${OPTIMIZATION_FLAGS} -std=c++11")
 
@@ -28,7 +33,10 @@ set(SOURCE_FILES_H
         src/cpp/MathKernels.h)
 
 
-set(MKL_DIR /usr/local/intel/compilers_and_libraries/mac/mkl)
+if (LINUX)
+elseif (APPLE)
+    set(MKL_DIR /usr/local/intel/compilers_and_libraries/mac/mkl)
+endif ()
 
 include_directories(${SOURCE_DIR}/cpp ${MKL_DIR}/include)
 link_directories(${MKL_DIR}/lib)
