@@ -2,16 +2,19 @@
 #include <thread>
 #include "MathKernels.h"
 #include "mkl.h"
+#include <iostream>
 
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_), dist_normal_real(0, 1), dist_uniform_real(0, 1) {
 };
 
 void CMAES::optimize() {
-    std::cout << "\noptimization starting wtih: "
+#ifndef NDEBUG
+    std::cout << "\nstarting run. "
               << "n_offsprings: " << era.n_offsprings
               << " sigma: " << era.sigma
               << " f_best: " << f_best << std::endl;
+#endif
     should_stop_run = false;
     while (era.i_iteration < n_iteration_max && !should_stop_run) {
         sample_offsprings();
@@ -169,16 +172,19 @@ void CMAES::stopping_criteria() {
 
     // -> condition of covariance matrix
     if (eigval_max / eigval_min > 1e14) {
-        std::cout << "stopping criteria occured: bad covariance condition." << std::endl;
-        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+#ifndef NDEBUG
+        std::cout << "stopping criteria. iteration: " << era.i_iteration << " reason: bad covariance condition."
+                  << std::endl;
+#endif
         should_stop_run = true;
     }
     // <-
 
     // -> cost function already low enough
     if (f_best < 1e-10) {
-        std::cout << "stopping criteria occured: f_best small." << std::endl;
-        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+#ifndef NDEBUG
+        std::cout << "stopping criteria. iteration: " << era.i_iteration << " reason: f_best small." << std::endl;
+#endif
         should_stop_run = true;
         should_stop_optimization = true;
     }
@@ -188,8 +194,9 @@ void CMAES::stopping_criteria() {
     double sigma_fac = era.sigma / sigma0;
     double sigma_up_thresh = 1e20 * std::sqrt(eigval_max);
     if (sigma_fac / sigma0 > sigma_up_thresh) {
-        std::cout << "stopping criteria occured: sigma up." << std::endl;
-        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+#ifndef NDEBUG
+        std::cout << "stopping criteria. iteration: " << era.i_iteration << " reason: sigma up." << std::endl;
+#endif
         should_stop_run = true;
     }
     // <-
@@ -203,8 +210,9 @@ void CMAES::stopping_criteria() {
         }
     }
     if (nea > 0) {
-        std::cout << "stopping criteria occured: no effect axis." << std::endl;
-        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+#ifndef NDEBUG
+        std::cout << "stopping criteria. iteration: " << era.i_iteration << " reason: no effect axis." << std::endl;
+#endif
         should_stop_run = true;
     }
     // <-
@@ -215,8 +223,10 @@ void CMAES::stopping_criteria() {
         nec += era.params_mean[i] == era.params_mean[i] + 0.2 * era.sigma * std::sqrt(era.C(i, i));
     }
     if (nec > 0) {
-        std::cout << "stopping criteria occured: no effect coordinate." << std::endl;
-        std::cout << "stopping at iteration: " << era.i_iteration << std::endl;
+#ifndef NDEBUG
+        std::cout << "stopping criteria. iteration: " << era.i_iteration << " reason: no effect coordinate."
+                  << std::endl;
+#endif
         should_stop_run = true;
     }
     // <-
@@ -239,8 +249,9 @@ double CMAES::cost_function(double *params) {
 }
 
 void CMAES::plot(dvec &params) {
-    if (!std::isnan(era.f_offsprings[0]))
-        std::cout << era.f_offsprings[0] << std::endl;
+#ifndef NDEBUG
+    std::cout << era.f_offsprings[0] << std::endl;
+#endif
     //cost_function(params);
     //gp << "set yrange [] reverse\n";
     //gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
@@ -307,10 +318,10 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     plot(params_best);
     dvec params_best_unscaled(n_params);
     transform_scale_shift(params_best.data(), params_best_unscaled.data());
-    std::cout << "f_best: " << f_best << ", params_best: ";
-    for (int i = 0; i < era.n_params; i++)
-        std::cout << params_best_unscaled[i] << " ";
-    // <-
+    std::cout << "f_best: " << f_best << std::endl;
+    std::cout << "params:";
+    for (int i = 0; i < n_params; i++)
+        std::cout << " " << params_best_unscaled[i] << " ";
     std::cout << std::endl;
     return params_best_unscaled;
 }

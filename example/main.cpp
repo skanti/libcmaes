@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include<libgen.h>
 #include <vector>
+#include <iostream>
 
 struct ToyData1 : public Data {
     void create_synthetic_data() {
@@ -144,8 +145,10 @@ int main(int argc, char *argv[]) {
     glob_t glob_result;
     std::string dir_src = argv[1];
     std::string dir_target = argv[2];
-    glob(std::string(dir_src + "/*").c_str(), GLOB_TILDE, NULL, &glob_result);
+    glob(std::string(dir_src + "/*.dat").c_str(), GLOB_TILDE, NULL, &glob_result);
     for (unsigned int i = 0; i < glob_result.gl_pathc; i++) {
+        std::cout << "***********************************************************" << std::endl;
+        std::cout << "***********************************************************" << std::endl;
         std::cout << "file " << i << "/" << glob_result.gl_pathc << std::endl;
         std::string filename = glob_result.gl_pathv[i];
         std::string basename1(basename((char *) filename.c_str()));

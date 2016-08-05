@@ -69,7 +69,7 @@ public:
     std::uniform_real_distribution<double> dist_uniform_real;
 
     // options
-    const int n_iteration_max = (int) (1e6);
+    const int n_iteration_max = 5000;
     const int n_interval_plot = 100;
     bool should_stop_run;
     bool should_stop_optimization;

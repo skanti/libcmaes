@@ -1,10 +1,7 @@
 #ifndef ALIGNEDALLOCATOR_H
 #define ALIGNEDALLOCATOR_H
 
-#include <cstdint>
-#include <vector>
-#include <cstddef>
-#include <iostream>
+#include <cstdlib>
 
 template<typename T, std::size_t Alignment>
 class AlignedAllocator {
