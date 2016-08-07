@@ -311,7 +311,7 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
         era.init(n_offsprings, n_params, params_best, sigma0);
         optimize();
         budget[0] += era.i_func_eval;
-        std::cout << "i_run: " << i_run << " / " << n_restarts << " completed." << std::endl;
+        std::cout << "i_run: " << i_run << " / " << n_restarts << " completed. f_best: " << f_best << std::endl;
     }
     // <-
 
