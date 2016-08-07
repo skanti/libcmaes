@@ -11,9 +11,11 @@
 
 class CMAES {
 public:
+    typedef void (*tss_type)(double *, double *, double *, int);
+
     CMAES(Data *data_, Model *model_);
 
-    dvec fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed);
+    dvec fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed, tss_type tss_func);
 
     void sample_offsprings();
 
@@ -41,7 +43,7 @@ public:
 
     void optimize();
 
-    void transform_scale_shift(double *params, double *params_tss);
+    tss_type transform_scale_shift;
 
     Data *data;
     Model *model;

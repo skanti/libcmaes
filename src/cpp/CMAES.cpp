@@ -231,17 +231,11 @@ void CMAES::stopping_criteria() {
         should_stop_run = true;
     }
     // <-
-
-}
-
-void CMAES::transform_scale_shift(double *params, double *params_tss) {
-    MathKernels::transform_scale_shift(params, x_typical.data(), 0, 100, 1e-4, 1e-1, era.n_params, params_tss);
 }
 
 double CMAES::cost_function(double *params) {
-    dvec params_tmp(era.n_params);
-    transform_scale_shift(params, params_tmp.data());
-    model->evaluate(data->x, params_tmp);
+    transform_scale_shift(params, x_typical.data(), era.params_tss.data(), n_params);
+    model->evaluate(data->x, era.params_tss);
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
         cost += MathKernels::least_squares(model->y.get_col(i), data->y.get_col(i), data->n_data);
@@ -261,8 +255,9 @@ void CMAES::plot(dvec &params) {
     //std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.025e9)));
 }
 
-dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed) {
+dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed, tss_type tss_func) {
     // -> settings
+    transform_scale_shift = tss_func;
     vslNewStream(&rnd_stream, VSL_BRNG_MT19937, seed);
     n_params = model->n_params;
     i_run = 0;
@@ -319,7 +314,7 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     cost_function(params_best.data());
     plot(params_best);
     dvec params_best_unscaled(n_params);
-    transform_scale_shift(params_best.data(), params_best_unscaled.data());
+    transform_scale_shift(params_best.data(), x_typical.data(), params_best_unscaled.data(), n_params);
     std::cout << "f_best: " << f_best << std::endl;
     std::cout << "params:";
     for (int i = 0; i < n_params; i++)

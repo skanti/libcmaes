@@ -27,6 +27,7 @@ struct Parameters {
     dvec c_invsqrt_y;
     dvec y_mean;
     dvec params_mean;
+    dvec params_tss;
     dvec params_mean_old;
     ivec keys_offsprings;
     double a_mu;
