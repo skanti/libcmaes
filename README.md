@@ -1,6 +1,8 @@
 # libcmaes
 
-A slim and fast C++ BIPOP-aCMA-ES library.
+A slim and aggressively optimized C++ BIPOP-aCMA-ES optimization library. 
+
+I claim that this is (by far) the fastest CMA-ES optimization algorithm available in the internet.
 
 ## Description
 
@@ -18,13 +20,10 @@ Consider this for academic purposes. You can manipulate/modify the source code a
 It takes literally 5 minutes to go through the code and understand the linear computational path. 
 Other templated libraries require hours (if not days) to really unravel the computational path.
 
-It is possible to watch the convergence online. That is, the cost-function is plotted via gnuplot interval-wise.
-I found this very partical.
-
 ## Performance and Optimization
 The heavy duty work is mostly done by Intel MKL BLAS level 2 and BLAS level 3. One eigenvalue/eigenvector decomposition for real symmetric matrices is done by Intel MKL LAPACK module ```dsyevd``` - which uses the 'divide-and-conquer' algorithm that computes different results than the standard method but it is faster for larger matrices.
 
-Here is a little info about critical methods in the main thread (in the right order):
+Here is a little info about critical methods in the main thread:
 
 ```N```= Number of parameters. (Usually < 200)
 
@@ -32,7 +31,7 @@ Here is a little info about critical methods in the main thread (in the right or
 
 #### sample offsprings
 
-- O(N\*M): sample of standard normal random variables via mersenne-twister. **UNOPTIMIZED SO FAR. USE OF STL**.
+- O(N\*M): sampling of standard normal random variables via mersenne-twister.
 - O(N\*N\*M): dgemm
 - O(N^3): dgemm
 
@@ -46,9 +45,18 @@ Here is a little info about critical methods in the main thread (in the right or
 #### eigen decomposition
 - O(N^3):  divide-and-conquer eigen decomposition.
 
-## How-To install
+## TO-DO
+- [x] Optimize sampling of random variables.
+- [ ] Optimize binary search (with preservation of indices).
+- [ ] Avoid array resizing by allocating a sufficient reservation memory.
+- [ ] Incorporate on-line plotter. (In fact a plotter was available in a previous version, but I removed it because it required the ```boost``` library which let the compile time and indexing time of  explode.
 
-Just have a look at the CMake file. Just run it with your individual paths.
+
+## How-To install
+Have a look at the CMake file. Just run it with your individual paths.
 
 ## Dependencies
 - Intel MKL
+
+## Contact
+Feel free to contact me if you have questions or just want to chat about it.
