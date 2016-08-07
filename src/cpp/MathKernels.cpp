@@ -10,6 +10,18 @@ void MathKernels::dot(double *v1, double *v2, int n) {
     }
 }
 
+void MathKernels::sample_random_vars_uniform(VSLStreamStatePtr *stream, int n, double *f, double a, double b) {
+    vdRngUniform(VSL_RNG_METHOD_UNIFORM_STD, *stream, n, f, a, b);
+}
+
+void MathKernels::sample_random_vars_gaussian(VSLStreamStatePtr *stream, int n, double *f, double a, double b) {
+    vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, *stream, n, f, a, b);
+}
+
+void MathKernels::init_random_number_generator(VSLStreamStatePtr *stream, const unsigned int seed) {
+    vslNewStream(stream, VSL_BRNG_MT19937, seed);
+}
+
 double MathKernels::least_squares(double *v1, double *v2, int n) {
     double sum_least_squares = 0;
     for (int i = 0; i < n; i++) {
@@ -34,7 +46,7 @@ void MathKernels::logspace(double *v, double a, double b, int n) {
 }
 
 void MathKernels::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k,
-                       double alpha, double beta, int lda, int ldb, int ldc) {
+                        double alpha, double beta, int lda, int ldb, int ldc) {
     // C = alpha*A*B + beat*C
     cblas_dgemm(CblasColMajor,
                 is_a_trans ? CblasTrans : CblasNoTrans, is_b_trans ? CblasTrans : CblasNoTrans,
@@ -47,7 +59,7 @@ void MathKernels::dgemm(double *a, int is_a_trans, double *b, int is_b_trans, do
 }
 
 void MathKernels::dgemv(double *a, int is_a_trans, double *x, double *y, int n_rows_a, int n_cols_a, int lda,
-                       double alpha, double beta) {
+                        double alpha, double beta) {
     // y = alpha*A*x + beta*y,
     cblas_dgemv(CblasColMajor, is_a_trans ? CblasTrans : CblasNoTrans,
                 n_rows_a, n_cols_a,

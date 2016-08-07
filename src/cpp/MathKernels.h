@@ -7,6 +7,13 @@ struct MathKernels {
 
     static void dot(double *v1, double *v2, int n);
 
+
+    static void init_random_number_generator(VSLStreamStatePtr *stream, const unsigned int seed);
+
+    static void sample_random_vars_gaussian(VSLStreamStatePtr *stream, int n, double *f, double a, double b);
+
+    static void sample_random_vars_uniform(VSLStreamStatePtr *stream, int n, double *f, double a, double b);
+
     static void mean_vector(double *a, int n_rows_a, int n_cols_a, int ld_a, double *v, double *w);
 
     static double least_squares(double *v1, double *v2, int n);

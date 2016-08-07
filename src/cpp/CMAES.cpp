@@ -1,6 +1,5 @@
 #include "CMAES.h"
 #include "MathKernels.h"
-#include "mkl.h"
 #include <iostream>
 #include <numeric>
 #include <iomanip>
@@ -37,8 +36,8 @@ void CMAES::optimize() {
 }
 
 void CMAES::sample_offsprings() {
-    vdRngGaussian(VSL_RNG_METHOD_GAUSSIAN_ICDF, rnd_stream, era.n_params * era.n_offsprings,
-                  era.z_offsprings.data.data(), 0.0, 1.0);
+    MathKernels::sample_random_vars_gaussian(&rnd_stream, era.n_params * era.n_offsprings, era.z_offsprings.data.data(),
+                                             0.0, 1.0);
     MathKernels::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
                        1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
 
@@ -258,7 +257,7 @@ void CMAES::plot(dvec &params) {
 dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed, tss_type tss_func) {
     // -> settings
     transform_scale_shift = tss_func;
-    vslNewStream(&rnd_stream, VSL_BRNG_MT19937, seed);
+    MathKernels::init_random_number_generator(&rnd_stream, seed);
     n_params = model->n_params;
     i_run = 0;
     // <-
@@ -293,7 +292,7 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
         int n_regime1 = n_offsprings0 * (1 << i_run);
         while (budget[0] > budget[1] && !should_stop_optimization) {
             double u[2];
-            vdRngUniform(VSL_RNG_METHOD_UNIFORM_STD, rnd_stream, 2, u, 0, 1);
+            MathKernels::sample_random_vars_uniform(&rnd_stream, 2, u, 0.0, 1.0);
             double ur2 = std::pow(u[0], 2.0);
             int n_offsprings = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
             double us = u[1];
