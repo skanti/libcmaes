@@ -1,1 +1,0 @@
-rsync -H -i -z -W -a -x --numeric-ids -r ./CMakeLists.txt ./src ./example armena@shika.iis.u-tokyo.ac.jp:./CMA-ES
