@@ -49,7 +49,7 @@ Here is a little info about critical methods in the main thread:
 - [x] Optimize sampling of random variables.
 - [ ] Optimize binary search (with preservation of indices).
 - [ ] Avoid array resizing by allocating a sufficient reservation memory.
-- [ ] Incorporate on-line plotter. (In fact a plotter was available in a previous version, but I removed it because it required the ```boost``` library which let the compile time and indexing time of  explode.
+- [ ] Incorporate on-line plotter. (In fact this was available in a previous version, but I removed it because it required the ```boost``` library which let the compile time and indexing time of IDEs explode.
 
 
 ## How-To install
