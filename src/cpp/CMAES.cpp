@@ -36,7 +36,7 @@ void CMAES::optimize() {
 }
 
 void CMAES::sample_offsprings() {
-    MathKernels::sample_random_vars_gaussian(&rnd_stream, era.n_params * era.n_offsprings, era.z_offsprings.data.data(),
+    MathKernels::sample_random_vars_gaussian(&rnd_stream, era.n_params * era.n_offsprings, era.z_offsprings.memptr(),
                                              0.0, 1.0);
     MathKernels::dgemm(era.B.memptr(), 0, era.D.memptr(), 0, era.BD.memptr(), era.B.n_rows, era.B.n_cols, era.D.n_cols,
                        1.0, 0, era.B.n_rows, era.D.n_rows, era.BD.n_rows);
@@ -45,8 +45,8 @@ void CMAES::sample_offsprings() {
                        era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.z_offsprings.n_rows,
                        era.y_offsprings.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
-        std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.get_col(i));
-        MathKernels::daxpy(era.y_offsprings.get_col(i), era.params_offsprings.get_col(i), era.sigma, era.n_params);
+        std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.memptr(i));
+        MathKernels::daxpy(era.y_offsprings.memptr(i), era.params_offsprings.memptr(i), era.sigma, era.n_params);
     }
 }
 
@@ -54,7 +54,7 @@ void CMAES::rank_and_sort() {
     // -> rank by cost-function
 #pragma omp parallel for
     for (int i = 0; i < era.n_offsprings; i++) {
-        double f_cand = cost_function(era.params_offsprings.get_col(i));
+        double f_cand = cost_function(era.params_offsprings.memptr(i));
         era.f_offsprings[i] = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
     }
     era.i_func_eval += era.n_offsprings;
@@ -68,21 +68,21 @@ void CMAES::rank_and_sort() {
               [&](std::size_t idx1, std::size_t idx2) { return era.f_offsprings[idx1] < era.f_offsprings[idx2]; });
     for (int i = 0; i < era.n_parents; i++) {
         int idx_new = era.keys_offsprings[i];
-        std::copy(era.params_offsprings.get_col(idx_new), era.params_offsprings.get_col(idx_new) + era.n_params,
-                  era.params_parents_ranked.get_col(i));
+        std::copy(era.params_offsprings.memptr(idx_new), era.params_offsprings.memptr(idx_new) + era.n_params,
+                  era.params_parents_ranked.memptr(i));
     }
     for (int i = 0; i < era.n_offsprings; i++) {
         int idx_new = era.keys_offsprings[i];
-        std::copy(era.y_offsprings.get_col(idx_new), era.y_offsprings.get_col(idx_new) + era.n_params,
-                  era.y_offsprings_ranked.get_col(i));
+        std::copy(era.y_offsprings.memptr(idx_new), era.y_offsprings.memptr(idx_new) + era.n_params,
+                  era.y_offsprings_ranked.memptr(i));
     }
     // <-
 }
 
 void CMAES::update_best() {
-    double f_cand = cost_function(era.params_parents_ranked.get_col(0));
+    double f_cand = cost_function(era.params_parents_ranked.memptr(0));
     if (!std::isnan(f_cand) && f_cand < f_best) {
-        std::copy(era.params_parents_ranked.get_col(0), era.params_parents_ranked.get_col(0) + era.n_params,
+        std::copy(era.params_parents_ranked.memptr(0), era.params_parents_ranked.memptr(0) + era.n_params,
                   params_best.begin());
         f_best = f_cand;
     }
@@ -119,7 +119,7 @@ void CMAES::cummulative_stepsize_adaption() {
 void CMAES::update_weights() {
     for (int i = 0; i < era.n_offsprings; i++) {
         if (era.w[i] < 0) {
-            MathKernels::dgemv(era.C_invsqrt.memptr(), 0, era.y_offsprings_ranked.get_col(i), era.c_invsqrt_y.data(),
+            MathKernels::dgemv(era.C_invsqrt.memptr(), 0, era.y_offsprings_ranked.memptr(i), era.c_invsqrt_y.data(),
                                era.n_params, era.n_params, era.n_params, 1.0, 0.0);
             double h = MathKernels::dnrm2(era.n_params, era.c_invsqrt_y.data());
             era.w_var[i] = era.w[i] * era.n_params / (h * h);
@@ -132,7 +132,7 @@ void CMAES::update_cov_matrix() {
     dmat h2(era.n_params, era.n_params);
     std::fill(h2.data.begin(), h2.data.end(), 0.0);
     for (int i = 0; i < era.n_offsprings; i++) {
-        MathKernels::dger(h2.memptr(), era.y_offsprings_ranked.get_col(i), era.y_offsprings_ranked.get_col(i),
+        MathKernels::dger(h2.memptr(), era.y_offsprings_ranked.memptr(i), era.y_offsprings_ranked.memptr(i),
                           era.c_mu * era.w_var[i], era.n_params, era.n_params, era.n_params);
     }
     dmat h3(era.n_params, era.n_params);
@@ -233,11 +233,11 @@ void CMAES::stopping_criteria() {
 }
 
 double CMAES::cost_function(double *params) {
-    transform_scale_shift(params, x_typical.data(), era.params_tss.data(), n_params);
+    transform_scale_shift(params, params_typical.data(), era.params_tss.data(), n_params);
     model->evaluate(data->x, era.params_tss);
     double cost = 0.0;
     for (int i = 0; i < model->dim; i++) {
-        cost += MathKernels::least_squares(model->y.get_col(i), data->y.get_col(i), data->n_data);
+        cost += MathKernels::least_squares(model->y.memptr(i), data->y.memptr(i), data->n_data);
     }
     return cost;
 }
@@ -249,7 +249,7 @@ void CMAES::plot(dvec &params) {
 #endif
 }
 
-dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed, tss_type tss_func) {
+dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_restarts, int seed, tss_type tss_func) {
     // -> settings
     transform_scale_shift = tss_func;
     MathKernels::init_random_number_generator(&rnd_stream, seed);
@@ -258,19 +258,18 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     // <-
 
     // -> first guess
-    x0.resize(n_params);
-    x0 = x0_;
+    params0 = params0_;
+    params_typical = params_typical_;
     sigma0 = sigma0_;
-    x_typical.resize(n_params);
-    x_typical = x_typical_;
     // <-
 
     // -> prepare fmin
     n_offsprings0 = (int) (4 + 3 * std::log(n_params));
     n_offsprings = n_offsprings0;
-    era.init(n_offsprings, n_params, x0, sigma0);
-    params_best.resize(n_params);
-    params_best = x0;
+    int n_offsprings_max = n_offsprings0 * (1 << n_restarts);
+    era.reserve(n_offsprings_max, n_params);
+    era.reinit(n_offsprings, n_params, params0, sigma0);
+    params_best = params0;
     double f_cand = cost_function(params_best.data());
     f_best = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
     i_func_eval_tot = 0;
@@ -281,7 +280,6 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     optimize();
     budget[0] += era.i_func_eval;
     // <-
-
     // -> restarts
     should_stop_optimization = false;
     for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
@@ -293,12 +291,12 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
             int n_offsprings = (int) (n_offsprings0 * std::pow(0.5 * n_regime1 / n_offsprings0, ur2));
             double us = u[1];
             double sigma_regime2 = sigma0 * 2.0 * std::pow(10, -2.0 * us);
-            era.init(n_offsprings, n_params, params_best, sigma_regime2);
+            era.reinit(n_offsprings, n_params, params_best, sigma_regime2);
             optimize();
             budget[1] += era.i_func_eval;
         }
         n_offsprings = n_regime1;
-        era.init(n_offsprings, n_params, params_best, sigma0);
+        era.reinit(n_offsprings, n_params, params0, sigma0);
         optimize();
         budget[0] += era.i_func_eval;
         std::cout << "i_run: " << i_run << " / " << n_restarts << " completed. f_best: " << f_best << std::endl;
@@ -309,7 +307,7 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     cost_function(params_best.data());
     plot(params_best);
     dvec params_best_unscaled(n_params);
-    transform_scale_shift(params_best.data(), x_typical.data(), params_best_unscaled.data(), n_params);
+    transform_scale_shift(params_best.data(), params_typical.data(), params_best_unscaled.data(), n_params);
     std::cout << "f_best: " << f_best << std::endl;
     std::cout << "params:";
     for (int i = 0; i < n_params; i++)

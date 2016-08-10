@@ -8,11 +8,15 @@
 
 struct Parameters {
 
-    void init(int n_offsprings_, int n_params_, dvec &params_mean_, double &sigma_);
+    void reserve(int n_offsprings_reserve_, int n_params_);
+
+    void reinit(int n_offsprings_, int n_params_, dvec &params_mean_, double &sigma_);
 
     int n_offsprings;
-    int n_params;
+    int n_offsprings_reserve;
     int n_parents;
+    int n_parents_reserve;
+    int n_params;
     int i_iteration;
     int i_func_eval;
     double n_mu_eff;
@@ -23,6 +27,7 @@ struct Parameters {
     dmat y_offsprings_ranked;
     dvec f_offsprings;
     dvec w;
+    dvec w_tmp;
     dvec w_var;
     dvec c_invsqrt_y;
     dvec y_mean;

@@ -1,15 +1,67 @@
 #include "Parameters.h"
 #include <algorithm>
 
-void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, double &sigma_) {
+void Parameters::reserve(int n_offsprings_reserve_, int n_params_) {
+    // N = n_params
+    // M = n_offsprings
+    // K = n_parents
+
+    n_params = n_params_;
+    n_offsprings_reserve = n_offsprings_reserve_;
+    n_parents_reserve = n_offsprings_reserve / 2;
+
+    // -> N vectors
+    p_s.resize(n_params);
+    p_c.resize(n_params);
+    params_mean.resize(n_params);
+    params_mean_old.resize(n_params);
+    params_tss.resize(n_params);
+    y_mean.resize(n_params);
+    c_invsqrt_y.resize(n_params);
+    C_eigvals.resize(n_params);
+    C_eigvals2.resize(n_params);
+    // <-
+
+    // -> M vectors
+    f_offsprings.resize(n_offsprings_reserve);
+    keys_offsprings.resize(n_offsprings_reserve);
+    w.resize(n_offsprings_reserve);
+    w_tmp.resize(n_offsprings_reserve);
+    w_var.resize(n_offsprings_reserve);
+    // <-
+
+    //-> NxM matrices
+    params_offsprings.reserve(n_params, n_offsprings_reserve);
+    y_offsprings.reserve(n_params, n_offsprings_reserve);
+    y_offsprings_ranked.reserve(n_params, n_offsprings_reserve);
+    z_offsprings.reserve(n_params, n_offsprings_reserve);
+    // <-
+
+    // -> NxK matrices
+    params_parents_ranked.reserve(n_params, n_parents_reserve);
+    // <-
+
+    // -> NxN matrices
+    C.reserve_and_resize(n_params, n_params);
+    C_invsqrt.reserve_and_resize(n_params, n_params);
+    C_invsqrt_tmp.reserve_and_resize(n_params, n_params);
+    B.reserve_and_resize(n_params, n_params);
+    D.reserve_and_resize(n_params, n_params);
+    D_inv.reserve_and_resize(n_params, n_params);
+    BD.reserve_and_resize(n_params, n_params);
+    // <-
+}
+
+
+void Parameters::reinit(int n_offsprings_, int n_params_, dvec &params_mean_, double &sigma_) {
+    n_params = n_params_;
     n_offsprings = n_offsprings_;
     n_parents = n_offsprings / 2;
-    n_params = n_params_;
     i_iteration = 0;
     i_func_eval = 0;
 
     //-> weights tmp
-    dvec w_tmp(n_offsprings);
+    w_tmp.resize(n_offsprings);
     double w_neg_sum = 0.0, w_pos_sum = 0.0;
     for (int i = 0; i < n_offsprings; i++) {
         w_tmp[i] = std::log((n_offsprings + 1.0) / 2.0) - std::log(i + 1);
@@ -28,28 +80,23 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     n_mu_eff = w_sum_parent * w_sum_parent / w_sq_sum_parent;
     // <-
 
-    // -> vectors
-    f_offsprings.resize(n_offsprings);
-    p_s.resize(n_params);
-    std::fill(&p_s[0], &p_s[n_params - 1], 0.0);
-    p_c.resize(n_params);
-    std::fill(&p_c[0], &p_c[n_params - 1], 0.0);
-    params_mean.resize(n_params);
-    params_mean = params_mean_;
-    params_mean_old.resize(n_params);
-    params_tss.resize(n_params);
-    y_mean.resize(n_params);
-    c_invsqrt_y.resize(n_params);
-    keys_offsprings.resize(n_offsprings);
-    C_eigvals.resize(n_params);
-    C_eigvals2.resize(n_params);
+    // -> N vectors
+    std::fill(p_s.data(), p_s.data() + n_params, 0.0);
+    std::fill(p_c.data(), p_c.data() + n_params, 0.0);
     // <-
 
-    //-> vector of vectors
+    // -> M vectors
+
+    // <-
+
+    // -> NxM matrices
     params_offsprings.resize(n_params, n_offsprings);
     y_offsprings.resize(n_params, n_offsprings);
     y_offsprings_ranked.resize(n_params, n_offsprings);
     z_offsprings.resize(n_params, n_offsprings);
+    // <-
+
+    // -> NxK matrices
     params_parents_ranked.resize(n_params, n_parents);
     // <-
 
@@ -66,7 +113,7 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
     p_c_fact = std::sqrt(c_c * (2.0 - c_c) * n_mu_eff);
     // <-
 
-    // -> parameter for active cma-es
+    // -> active cma-es
     a_mu = 1.0 + c_1 / c_mu;
     a_mueff = 1.0 + 2 * n_mu_eff;
     a_posdef = (1.0 - c_1 - c_mu) / (n_params * c_mu);
@@ -74,29 +121,15 @@ void Parameters::init(int n_offsprings_, int n_params_, dvec &params_mean_, doub
 
     // -> weights
     double a_min = std::min(std::min(a_mu, a_mueff), a_posdef);
-    w.resize(n_offsprings);
-    w_var.resize(n_offsprings);
     for (int i = 0; i < n_offsprings; i++) {
-        if (w_tmp[i] >= 0)
-            w[i] = w_tmp[i] / w_pos_sum;
-        else
-            w[i] = a_min * w_tmp[i] / std::abs(w_neg_sum);
+        w[i] = w_tmp[i] >= 0 ? w[i] = w_tmp[i] / w_pos_sum : w[i] = a_min * w_tmp[i] / std::abs(w_neg_sum);
     }
     w_var = w;
     // <-
 
-    // -> sigma
-    sigma = sigma_;
-    // <-
+    sigma = sigma_; // <- sigma
 
-    // -> matrices
-    C.resize(n_params, n_params);
-    C_invsqrt.resize(n_params, n_params);
-    C_invsqrt_tmp.resize(n_params, n_params);
-    B.resize(n_params, n_params);
-    D.resize(n_params, n_params);
-    D_inv.resize(n_params, n_params);
-    BD.resize(n_params, n_params);
+    // -> NxN matrices
     C.eye();
     C_invsqrt.eye();
     B.eye();

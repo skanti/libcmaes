@@ -15,7 +15,8 @@ struct ToyData1 : public Data {
         n_data = 50;
         dim = 2;
         x.resize(n_data);
-        y.resize(n_data, dim);
+        y.reserve_and_resize(n_data, dim);
+
         // fill
         MathKernels::logspace(x.data(), -1, 5, n_data);
         dvec params(
@@ -64,12 +65,10 @@ int main(int argc, char *argv[]) {
     std::cout << "***********************************************************" << std::endl;
 
     omp_set_num_threads(1);
-
     //-> data
     ToyData1 toy_data;
     toy_data.create_synthetic_data();
     // <-
-
     // -> model
     ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
     // <-

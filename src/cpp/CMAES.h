@@ -15,7 +15,7 @@ public:
 
     CMAES(Data *data_, Model *model_);
 
-    dvec fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed, tss_type tss_func);
+    dvec fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_restarts, int seed, tss_type tss_func);
 
     void sample_offsprings();
 
@@ -50,8 +50,8 @@ public:
     Parameters era;
 
     // initial values
-    dvec x0;
-    dvec x_typical;
+    dvec params0;
+    dvec params_typical;
     double sigma0;
     int n_offsprings0;
     int n_params;
