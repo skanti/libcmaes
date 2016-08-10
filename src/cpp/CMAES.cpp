@@ -244,14 +244,9 @@ double CMAES::cost_function(double *params) {
 
 void CMAES::plot(dvec &params) {
 #ifndef NDEBUG
-    std::cout << era.f_offsprings[0] << std::endl;
+    std::cout << "f0: " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << era.f_offsprings[0]
+              << std::endl;
 #endif
-    //cost_function(params);
-    //gp << "set yrange [] reverse\n";
-    //gp << "plot '-' with points pt 7 title 'data', " << "'-' with lines title 'model'\n";
-    //gp.send1d(boost::make_tuple(data->y[0], data->y[1]));
-    //gp.send1d(boost::make_tuple(model->y[0], model->y[1]));
-    //std::this_thread::sleep_for((std::chrono::nanoseconds) ((int) (0.025e9)));
 }
 
 dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, int seed, tss_type tss_func) {
@@ -286,6 +281,7 @@ dvec CMAES::fmin(dvec &x0_, double sigma0_, dvec &x_typical_, int n_restarts, in
     optimize();
     budget[0] += era.i_func_eval;
     // <-
+
     // -> restarts
     should_stop_optimization = false;
     for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {

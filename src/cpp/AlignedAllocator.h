@@ -2,6 +2,9 @@
 #define ALIGNEDALLOCATOR_H
 
 #include <cstdlib>
+#include <cstddef>
+#include <stdexcept>
+#include <new>
 
 template<typename T, std::size_t Alignment>
 class AlignedAllocator {
@@ -61,14 +64,14 @@ public:
 
     // Default constructor, copy constructor, rebinding constructor, and destructor.
     // Empty for stateless allocators.
-    AlignedAllocator() { }
+    AlignedAllocator() {}
 
-    AlignedAllocator(const AlignedAllocator &) { }
+    AlignedAllocator(const AlignedAllocator &) {}
 
     template<typename U>
-    AlignedAllocator(const AlignedAllocator<U, Alignment> &) { }
+    AlignedAllocator(const AlignedAllocator<U, Alignment> &) {}
 
-    ~AlignedAllocator() { }
+    ~AlignedAllocator() {}
 
 
     // The following will be different for each allocator.
@@ -125,4 +128,4 @@ private:
     AlignedAllocator &operator=(const AlignedAllocator &);
 };
 
-#endif //GRAVITYASSIST_ALIGNEDALLOCATOR_H
+#endif

@@ -2,7 +2,7 @@
 #define LIBCMAES_TYPES_H
 
 #include <vector>
-//#include "AlignedAllocator.h"
+#include "AlignedAllocator.h"
 
 enum StorageType {
     column_major = 0,
@@ -45,8 +45,7 @@ struct Matrix {
     T data;
 };
 
-typedef std::vector<double> dvec;
-typedef std::vector<dvec> dvecvec;
+typedef std::vector<double, AlignedAllocator<double,32>> dvec;
 typedef std::vector<int> ivec;
 typedef Matrix<dvec> dmat;
 #endif
