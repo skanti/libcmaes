@@ -3,6 +3,7 @@
 #include <iostream>
 #include <numeric>
 #include <iomanip>
+#include "Timer.h"
 
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_) {
@@ -27,10 +28,11 @@ void CMAES::optimize() {
         eigendecomposition();
         update_sigma();
         stopping_criteria();
+#ifndef NDEBUG
         if (era.i_iteration % n_interval_plot == 0) {
             plot(era.params_mean);
         }
-
+#endif
         era.i_iteration++;
     }
 }
@@ -52,7 +54,7 @@ void CMAES::sample_offsprings() {
 
 void CMAES::rank_and_sort() {
     // -> rank by cost-function
-#pragma omp parallel for
+//#pragma omp parallel for
     for (int i = 0; i < era.n_offsprings; i++) {
         double f_cand = cost_function(era.params_offsprings.memptr(i));
         era.f_offsprings[i] = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
@@ -277,7 +279,13 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
     // <-
 
     // -> first run
+
+    Timer::start();
     optimize();
+    Timer::stop();
+    std::cout << "timing (ms): " << Timer::get_timing() << std::endl;
+    std::cout << f_best << std::endl;
+    exit(0);
     budget[0] += era.i_func_eval;
     // <-
     // -> restarts
