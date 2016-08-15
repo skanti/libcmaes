@@ -17,7 +17,6 @@ void Parameters::reserve(int n_offsprings_reserve_, int n_params_) {
     params_mean_old.resize(n_params);
     params_tss.resize(n_params);
     y_mean.resize(n_params);
-    c_invsqrt_y.resize(n_params);
     C_eigvals.resize(n_params);
     // <-
 
@@ -25,7 +24,6 @@ void Parameters::reserve(int n_offsprings_reserve_, int n_params_) {
     f_offsprings.resize(n_offsprings_reserve);
     keys_offsprings.resize(n_offsprings_reserve);
     w.resize(n_offsprings_reserve);
-    w_tmp.resize(n_offsprings_reserve);
     w_var.resize(n_offsprings_reserve);
     // <-
 
@@ -45,8 +43,6 @@ void Parameters::reserve(int n_offsprings_reserve_, int n_params_) {
     C_invsqrt.reserve_and_resize(n_params, n_params);
     B.reserve_and_resize(n_params, n_params);
     D.reserve_and_resize(n_params, n_params);
-    D_inv.reserve_and_resize(n_params, n_params);
-    BD.reserve_and_resize(n_params, n_params);
     // <-
 }
 
@@ -63,18 +59,18 @@ void Parameters::reinit(int n_offsprings_, int n_params_, dvec &params_mean_, do
     //-> weights tmp
     double w_neg_sum = 0.0, w_pos_sum = 0.0;
     for (int i = 0; i < n_offsprings; i++) {
-        w_tmp[i] = std::log((n_offsprings + 1.0) / 2.0) - std::log(i + 1);
-        if (w_tmp[i] >= 0)
-            w_pos_sum += w_tmp[i];
+        w[i] = std::log((n_offsprings + 1.0) / 2.0) - std::log(i + 1);
+        if (w[i] >= 0)
+            w_pos_sum += w[i];
         else
-            w_neg_sum += w_tmp[i];
+            w_neg_sum += w[i];
     }
 
 
     double w_sum_parent = 0.0, w_sq_sum_parent = 0.0;
     for (int i = 0; i < n_parents; i++) {
-        w_sum_parent += w_tmp[i];
-        w_sq_sum_parent += w_tmp[i] * w_tmp[i];
+        w_sum_parent += w[i];
+        w_sq_sum_parent += w[i] * w[i];
     }
     n_mu_eff = w_sum_parent * w_sum_parent / w_sq_sum_parent;
     // <-
@@ -121,7 +117,7 @@ void Parameters::reinit(int n_offsprings_, int n_params_, dvec &params_mean_, do
     // -> weights
     double a_min = std::min(std::min(a_mu, a_mueff), a_posdef);
     for (int i = 0; i < n_offsprings; i++) {
-        w[i] = w_tmp[i] >= 0 ? w[i] = w_tmp[i] / w_pos_sum : w[i] = a_min * w_tmp[i] / std::abs(w_neg_sum);
+        w[i] = w[i] >= 0 ? w[i] = w[i] / w_pos_sum : w[i] = a_min * w[i] / std::abs(w_neg_sum);
     }
     w_var = w;
     // <-
@@ -133,8 +129,6 @@ void Parameters::reinit(int n_offsprings_, int n_params_, dvec &params_mean_, do
     C_invsqrt.eye();
     B.eye();
     D.eye();
-    D_inv.eye();
-    BD.eye();
     // <-
 
 }

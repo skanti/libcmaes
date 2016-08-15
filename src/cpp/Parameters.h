@@ -27,9 +27,7 @@ struct Parameters {
     dmat y_offsprings_ranked;
     dvec f_offsprings;
     dvec w;
-    dvec w_tmp;
     dvec w_var;
-    dvec c_invsqrt_y;
     dvec y_mean;
     dvec params_mean;
     dvec params_tss;
@@ -55,8 +53,6 @@ struct Parameters {
     dmat C_invsqrt;
     dmat B;
     dmat D;
-    dmat D_inv;
-    dmat BD;
     bool h_sig;
 };
 
