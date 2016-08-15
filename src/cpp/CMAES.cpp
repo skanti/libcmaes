@@ -3,7 +3,6 @@
 #include <iostream>
 #include <numeric>
 #include <iomanip>
-#include "Timer.h"
 
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_) {
@@ -283,16 +282,10 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
     // <-
 
     // -> first run
-
-    Timer::start();
     optimize();
-    Timer::stop();
-    std::cout << "timing (ms): " << Timer::get_timing() << std::endl;
-    std::cout << "i_iteration: " << era.i_iteration << std::setprecision(std::numeric_limits<double>::digits10 + 1)
-              << " f_best: " << f_best << std::endl;
-    exit(0);
     budget[0] += era.i_func_eval;
     // <-
+    
     // -> restarts
     should_stop_optimization = false;
     for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
