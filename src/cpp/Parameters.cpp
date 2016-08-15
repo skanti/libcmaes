@@ -17,7 +17,7 @@ void Parameters::reserve(int n_offsprings_reserve_, int n_params_) {
     params_mean_old.resize(n_params);
     params_tss.resize(n_params);
     y_mean.resize(n_params);
-    C_eigvals.resize(n_params);
+    eigvals_C.resize(n_params);
     // <-
 
     // -> M vectors

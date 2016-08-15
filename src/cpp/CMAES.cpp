@@ -160,8 +160,8 @@ void CMAES::eigendecomposition() {
     double D_inv[n_params * n_params] __attribute__((aligned(32)));
 
     std::copy(era.C.memptr(), era.C.memptr() + era.n_params * era.n_params, era.B.memptr());
-    MathKernels::dsyevd(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
-    MathKernels::vdsqrt(era.n_params, era.C_eigvals.data(), eigvals_C_sq);
+    MathKernels::dsyevd(era.B.memptr(), era.eigvals_C.data(), era.n_params, era.n_params, era.n_params);
+    MathKernels::vdsqrt(era.n_params, era.eigvals_C.data(), eigvals_C_sq);
     MathKernels::diagmat(era.D.memptr(), era.n_params, era.n_params, eigvals_C_sq);
     MathKernels::vdinv(era.n_params, eigvals_C_sq, eigvals_C_sq);
     MathKernels::diagmat(D_inv, era.n_params, era.n_params, eigvals_C_sq);
@@ -173,8 +173,8 @@ void CMAES::eigendecomposition() {
 }
 
 void CMAES::stopping_criteria() {
-    double eigval_min = era.C_eigvals[0];
-    double eigval_max = era.C_eigvals[era.n_params - 1];
+    double eigval_min = era.eigvals_C[0];
+    double eigval_max = era.eigvals_C[era.n_params - 1];
 
     // -> condition of covariance matrix
     if (eigval_max / eigval_min > 1e14) {
@@ -210,7 +210,7 @@ void CMAES::stopping_criteria() {
     // -> no effect axis
     int nea = 0;
     for (int i = 0; i < era.n_params; i++) {
-        double ei = 0.1 * era.sigma * era.C_eigvals[i];
+        double ei = 0.1 * era.sigma * era.eigvals_C[i];
         for (int j = 0; j < era.n_params; j++) {
             nea += era.params_mean[i] == era.params_mean[i] + ei * era.B(j, i);
         }
