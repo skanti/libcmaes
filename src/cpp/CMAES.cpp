@@ -129,21 +129,23 @@ void CMAES::update_weights() {
 
 void CMAES::update_cov_matrix() {
     double h1 = (1 - era.h_sig) * era.c_c * (2.0 - era.c_c);
-    dmat h2(era.n_params, era.n_params);
-    std::fill(h2.data.begin(), h2.data.end(), 0.0);
+    double h2[n_params * n_params] __attribute__((aligned(32)));
+    double h3[n_params * n_params] __attribute__((aligned(32)));
+    for (int i = 0; i < n_params * n_params; i++) {
+        h2[i] = 0;
+        h3[i] = 0;
+    }
     for (int i = 0; i < era.n_offsprings; i++) {
-        MathKernels::dger(h2.memptr(), era.y_offsprings_ranked.memptr(i), era.y_offsprings_ranked.memptr(i),
+        MathKernels::dger(h2, era.y_offsprings_ranked.memptr(i), era.y_offsprings_ranked.memptr(i),
                           era.c_mu * era.w_var[i], era.n_params, era.n_params, era.n_params);
     }
-    dmat h3(era.n_params, era.n_params);
-    std::fill(h3.data.begin(), h3.data.end(), 0.0);
-    MathKernels::dger(h3.memptr(), era.p_c.data(), era.p_c.data(),
+    MathKernels::dger(h3, era.p_c.data(), era.p_c.data(),
                       era.c_1, era.n_params, era.n_params, era.n_params);
     double w_sum = std::accumulate(era.w.data(), era.w.data() + era.n_offsprings, 0.0);
     MathKernels::dgema(era.C.memptr(), era.n_params, era.n_params, era.n_params,
                        (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * w_sum));
-    MathKernels::dgempm(era.C.memptr(), h3.memptr(), era.n_params, era.n_params, era.n_params);
-    MathKernels::dgempm(era.C.memptr(), h2.memptr(), era.n_params, era.n_params, era.n_params);
+    MathKernels::dgempm(era.C.memptr(), h3, era.n_params, era.n_params, era.n_params);
+    MathKernels::dgempm(era.C.memptr(), h2, era.n_params, era.n_params, era.n_params);
 }
 
 void CMAES::update_sigma() {
@@ -151,21 +153,20 @@ void CMAES::update_sigma() {
 }
 
 void CMAES::eigendecomposition() {
-    std::copy(era.C.memptr(), era.C.memptr() + era.n_params*era.n_params, era.B.memptr());
+    double eigvals_C_sq[n_params] __attribute__((aligned(32)));
+    double C_invsqrt_tmp[n_params * n_params] __attribute__((aligned(32)));
 
-    //memcpy(era.C.memptr(),era.B.memptr(),era.n_params*era.n_params);
+    std::copy(era.C.memptr(), era.C.memptr() + era.n_params * era.n_params, era.B.memptr());
     MathKernels::dsyevd(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
-    MathKernels::vdsqrt(era.n_params, era.C_eigvals.data(), era.C_eigvals2.data());
-    MathKernels::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
-    MathKernels::vdinv(era.n_params, era.C_eigvals2.data(), era.C_eigvals2.data());
-    MathKernels::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
+    MathKernels::vdsqrt(era.n_params, era.C_eigvals.data(), eigvals_C_sq);
+    MathKernels::diagmat(era.D.memptr(), era.n_params, era.n_params, eigvals_C_sq);
+    MathKernels::vdinv(era.n_params, eigvals_C_sq, eigvals_C_sq);
+    MathKernels::diagmat(era.D_inv.memptr(), era.n_params, era.n_params, eigvals_C_sq);
 
-    MathKernels::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, era.C_invsqrt_tmp.memptr(), era.n_params, era.n_params,
+    MathKernels::dgemm(era.B.memptr(), 0, era.D_inv.memptr(), 0, C_invsqrt_tmp, era.n_params, era.n_params,
                        era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
-    MathKernels::dgemm(era.C_invsqrt_tmp.memptr(), 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params,
+    MathKernels::dgemm(C_invsqrt_tmp, 0, era.B.memptr(), 1, era.C_invsqrt.memptr(), era.n_params,
                        era.n_params, era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
-    //MathKernels::dgemv_c(era.C_invsqrt.memptr(), era.C_invsqrt.memptr(), era.C_eigvals2.data(), era.n_params,
-    //                    era.n_params, era.n_params, era.n_params, 1.0);
 }
 
 void CMAES::stopping_criteria() {
@@ -284,7 +285,8 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
     optimize();
     Timer::stop();
     std::cout << "timing (ms): " << Timer::get_timing() << std::endl;
-    std::cout << f_best << std::endl;
+    std::cout << "i_iteration: " << era.i_iteration << std::setprecision(std::numeric_limits<double>::digits10 + 1)
+              << " f_best: " << f_best << std::endl;
     exit(0);
     budget[0] += era.i_func_eval;
     // <-

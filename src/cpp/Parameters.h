@@ -51,10 +51,8 @@ struct Parameters {
     double p_s_fact;
     double sigma;
     dvec C_eigvals;
-    dvec C_eigvals2;
     dmat C;
     dmat C_invsqrt;
-    dmat C_invsqrt_tmp;
     dmat B;
     dmat D;
     dmat D_inv;

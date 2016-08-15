@@ -19,7 +19,6 @@ void Parameters::reserve(int n_offsprings_reserve_, int n_params_) {
     y_mean.resize(n_params);
     c_invsqrt_y.resize(n_params);
     C_eigvals.resize(n_params);
-    C_eigvals2.resize(n_params);
     // <-
 
     // -> M vectors
@@ -44,7 +43,6 @@ void Parameters::reserve(int n_offsprings_reserve_, int n_params_) {
     // -> NxN matrices
     C.reserve_and_resize(n_params, n_params);
     C_invsqrt.reserve_and_resize(n_params, n_params);
-    C_invsqrt_tmp.reserve_and_resize(n_params, n_params);
     B.reserve_and_resize(n_params, n_params);
     D.reserve_and_resize(n_params, n_params);
     D_inv.reserve_and_resize(n_params, n_params);
@@ -63,7 +61,6 @@ void Parameters::reinit(int n_offsprings_, int n_params_, dvec &params_mean_, do
     params_mean = params_mean_; // <-- setting params mean
 
     //-> weights tmp
-    w_tmp.resize(n_offsprings);
     double w_neg_sum = 0.0, w_pos_sum = 0.0;
     for (int i = 0; i < n_offsprings; i++) {
         w_tmp[i] = std::log((n_offsprings + 1.0) / 2.0) - std::log(i + 1);
