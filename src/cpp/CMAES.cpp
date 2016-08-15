@@ -137,7 +137,7 @@ void CMAES::update_cov_matrix() {
     std::fill(h3.data.begin(), h3.data.end(), 0.0);
     MathKernels::dger(h3.memptr(), era.p_c.data(), era.p_c.data(),
                       era.c_1, era.n_params, era.n_params, era.n_params);
-    double w_sum = std::accumulate(era.w.begin(), era.w.end(), 0.0);
+    double w_sum = std::accumulate(era.w.data(), era.w.data() + era.n_offsprings, 0.0);
     MathKernels::dgema(era.C.memptr(), era.n_params, era.n_params, era.n_params,
                        (1.0 + era.c_1 * h1 - era.c_1 - era.c_mu * w_sum));
     MathKernels::dgempm(era.C.memptr(), h3.memptr(), era.n_params, era.n_params, era.n_params);
