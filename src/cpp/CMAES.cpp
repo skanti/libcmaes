@@ -45,7 +45,7 @@ void CMAES::sample_offsprings() {
                        era.BD.n_cols, era.z_offsprings.n_cols, 1.0, 0, era.BD.n_rows, era.z_offsprings.n_rows,
                        era.y_offsprings.n_rows);
     for (int i = 0; i < era.n_offsprings; i++) {
-        std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_offsprings.memptr(i));
+        std::copy(era.params_mean.data(), era.params_mean.data() + era.n_params, era.params_offsprings.memptr(i));
         MathKernels::daxpy(era.y_offsprings.memptr(i), era.params_offsprings.memptr(i), era.sigma, era.n_params);
     }
 }
@@ -89,12 +89,11 @@ void CMAES::update_best() {
 }
 
 void CMAES::assign_new_mean() {
-    std::copy(era.params_mean.begin(), era.params_mean.end(), era.params_mean_old.begin());
+    era.params_mean_old = era.params_mean;
     std::fill(era.y_mean.begin(), era.y_mean.end(), 0.0);
     MathKernels::mean_vector(era.y_offsprings_ranked.memptr(), era.n_params, era.n_parents, era.n_params, era.w.data(),
                              era.y_mean.data());
     MathKernels::daxpy(era.y_mean.data(), era.params_mean.data(), era.sigma, era.n_params);
-
 }
 
 void CMAES::cummulative_stepsize_adaption() {
@@ -102,7 +101,6 @@ void CMAES::cummulative_stepsize_adaption() {
     MathKernels::dgemv(era.C_invsqrt.memptr(), 0, era.y_mean.data(), era.p_s.data(), era.n_params, era.n_params,
                        era.n_params, era.p_s_fact, 1.0 - era.c_s);
     // <-
-
     // -> h sigma
     double p_s_norm = MathKernels::dnrm2(era.n_params, era.p_s.data());
     double p_s_thresh = (1.4 + 2.0 / (era.n_params + 1))
@@ -151,7 +149,9 @@ void CMAES::update_sigma() {
 }
 
 void CMAES::eigendecomposition() {
-    std::copy(era.C.data.begin(), era.C.data.end(), era.B.data.begin());
+    std::copy(era.C.memptr(), era.C.memptr() + era.n_params*era.n_params, era.B.memptr());
+
+    //memcpy(era.C.memptr(),era.B.memptr(),era.n_params*era.n_params);
     MathKernels::dsyevd(era.B.memptr(), era.C_eigvals.data(), era.n_params, era.n_params, era.n_params);
     MathKernels::vdsqrt(era.n_params, era.C_eigvals.data(), era.C_eigvals2.data());
     MathKernels::diagmat(era.D.memptr(), era.n_params, era.n_params, era.C_eigvals2.data());
@@ -296,7 +296,7 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
             budget[1] += era.i_func_eval;
         }
         n_offsprings = n_regime1;
-        era.reinit(n_offsprings, n_params, params0, sigma0);
+        era.reinit(n_offsprings, n_params, params_best, sigma0);
         optimize();
         budget[0] += era.i_func_eval;
         std::cout << "i_run: " << i_run << " / " << n_restarts << " completed. f_best: " << f_best << std::endl;

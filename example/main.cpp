@@ -2,12 +2,8 @@
 #include <fstream>
 #include <complex>
 #include "MathKernels.h"
-#include <glob.h>
-#include<libgen.h>
 #include <iostream>
-#include <string>
 #include <iomanip>
-#include <zconf.h>
 #include "omp.h"
 
 struct ToyData1 : public Data {
@@ -64,7 +60,7 @@ void transform_scale_shift(double *params, double *params_typical, double *param
 int main(int argc, char *argv[]) {
     std::cout << "***********************************************************" << std::endl;
 
-    omp_set_num_threads(1);
+    //omp_set_num_threads(1);
     //-> data
     ToyData1 toy_data;
     toy_data.create_synthetic_data();

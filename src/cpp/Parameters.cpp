@@ -60,6 +60,8 @@ void Parameters::reinit(int n_offsprings_, int n_params_, dvec &params_mean_, do
     i_iteration = 0;
     i_func_eval = 0;
 
+    params_mean = params_mean_; // <-- setting params mean
+
     //-> weights tmp
     w_tmp.resize(n_offsprings);
     double w_neg_sum = 0.0, w_pos_sum = 0.0;
