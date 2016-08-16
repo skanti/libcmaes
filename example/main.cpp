@@ -57,6 +57,15 @@ void transform_scale_shift(double *params, double *params_typical, double *param
     }
 }
 
+inline double cost_func(dvec &params, dvec &params_typical, int n_params, Model *model, Data *data) {
+    model->evaluate(data->x, params);
+    double cost = 0.0;
+    for (int i = 0; i < model->dim; i++) {
+        cost += MathKernels::least_squares(model->y.memptr(i), data->y.memptr(i), data->n_data);
+    }
+    return cost;
+}
+
 int main(int argc, char *argv[]) {
     std::cout << "***********************************************************" << std::endl;
 
@@ -72,6 +81,6 @@ int main(int argc, char *argv[]) {
     dvec x_typical({1.0e-07, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
     dvec x0(toy_model.n_params, 1);
     double sigma0 = 1;
-    dvec x = cmaes.fmin(x0, sigma0, x_typical, 6, 999, transform_scale_shift);
+    dvec x = cmaes.fmin(x0, sigma0, x_typical, 6, 999, cost_func, transform_scale_shift);
     return 0;
 }

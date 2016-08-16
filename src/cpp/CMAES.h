@@ -13,9 +13,12 @@ class CMAES {
 public:
     typedef void (*tss_type)(double *, double *, double *, int);
 
+    typedef double (*cost_type)(dvec &, dvec &, int, Model *, Data *);
+
     CMAES(Data *data_, Model *model_);
 
-    dvec fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_restarts, int seed, tss_type tss_func);
+    dvec fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_restarts, int seed, cost_type cost_func_,
+              tss_type tss_);
 
     void sample_offsprings();
 
@@ -37,13 +40,15 @@ public:
 
     void update_best();
 
-    double cost_function(double *params);
-
     void plot(dvec &params);
 
     void optimize();
 
+    double cost(double *params);
+
     tss_type transform_scale_shift;
+
+    cost_type cost_func;
 
     Data *data;
     Model *model;

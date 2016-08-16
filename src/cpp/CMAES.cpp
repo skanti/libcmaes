@@ -56,7 +56,7 @@ void CMAES::rank_and_sort() {
     // -> rank by cost-function
 //#pragma omp parallel for
     for (int i = 0; i < era.n_offsprings; i++) {
-        double f_cand = cost_function(era.params_offsprings.memptr(i));
+        double f_cand = cost(era.params_offsprings.memptr(i));
         era.f_offsprings[i] = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
     }
     era.i_func_eval += era.n_offsprings;
@@ -82,7 +82,7 @@ void CMAES::rank_and_sort() {
 }
 
 void CMAES::update_best() {
-    double f_cand = cost_function(era.params_parents_ranked.memptr(0));
+    double f_cand = cost(era.params_parents_ranked.memptr(0));
     if (!std::isnan(f_cand) && f_cand < f_best) {
         std::copy(era.params_parents_ranked.memptr(0), era.params_parents_ranked.memptr(0) + era.n_params,
                   params_best.begin());
@@ -171,6 +171,11 @@ void CMAES::eigendecomposition() {
                        era.n_params, era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
 }
 
+double CMAES::cost(double *params) {
+    transform_scale_shift(params, params_typical.data(), era.params_tss.data(), n_params);
+    return cost_func(era.params_tss, params_typical, n_params, model, data);
+}
+
 void CMAES::stopping_criteria() {
     double eigval_min = era.eigvals_C[0];
     double eigval_max = era.eigvals_C[era.n_params - 1];
@@ -237,16 +242,6 @@ void CMAES::stopping_criteria() {
     // <-
 }
 
-double CMAES::cost_function(double *params) {
-    transform_scale_shift(params, params_typical.data(), era.params_tss.data(), n_params);
-    model->evaluate(data->x, era.params_tss);
-    double cost = 0.0;
-    for (int i = 0; i < model->dim; i++) {
-        cost += MathKernels::least_squares(model->y.memptr(i), data->y.memptr(i), data->n_data);
-    }
-    return cost;
-}
-
 void CMAES::plot(dvec &params) {
 #ifndef NDEBUG
     std::cout << "f0: " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << era.f_offsprings[0]
@@ -254,9 +249,11 @@ void CMAES::plot(dvec &params) {
 #endif
 }
 
-dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_restarts, int seed, tss_type tss_func) {
+dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_restarts, int seed, cost_type cost_func_,
+                 tss_type tss_) {
     // -> settings
-    transform_scale_shift = tss_func;
+    cost_func = cost_func_;
+    transform_scale_shift = tss_;
     MathKernels::init_random_number_generator(&rnd_stream, seed);
     n_params = model->n_params;
     i_run = 0;
@@ -275,7 +272,7 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
     era.reserve(n_offsprings_max, n_params);
     era.reinit(n_offsprings, n_params, params0, sigma0);
     params_best = params0;
-    double f_cand = cost_function(params_best.data());
+    double f_cand = cost(params_best.data());
     f_best = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
     i_func_eval_tot = 0;
     int budget[2] = {0, 0};
@@ -285,7 +282,7 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
     optimize();
     budget[0] += era.i_func_eval;
     // <-
-    
+
     // -> restarts
     should_stop_optimization = false;
     for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
@@ -310,7 +307,7 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
     // <-
 
     // -> plot final result
-    cost_function(params_best.data());
+    cost(params_best.data());
     plot(params_best);
     dvec params_best_unscaled(n_params);
     transform_scale_shift(params_best.data(), params_typical.data(), params_best_unscaled.data(), n_params);
