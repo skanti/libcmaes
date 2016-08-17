@@ -1,7 +1,7 @@
 #ifndef ALIGNEDALLOCATOR_H
 #define ALIGNEDALLOCATOR_H
 
-#include <cstdlib>
+#include <stdlib.h>
 #include <cstddef>
 #include <stdexcept>
 #include <new>

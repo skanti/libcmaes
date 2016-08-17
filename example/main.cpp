@@ -79,7 +79,8 @@ int main(int argc, char *argv[]) {
     // <-
     CMAES cmaes(&toy_data, &toy_model);
     dvec x_typical({1.0e-07, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
-    dvec x0(toy_model.n_params, 1);
+    dvec x0(toy_model.n_params);
+    std::fill(x0.begin(), x0.end(), 1.0);
     double sigma0 = 1;
     dvec x = cmaes.fmin(x0, sigma0, x_typical, 6, 999, cost_func, transform_scale_shift);
     return 0;
