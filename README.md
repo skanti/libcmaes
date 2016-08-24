@@ -37,7 +37,7 @@ Here is a little info about critical methods in the main thread:
 
 #### rank and sort
 
-- O(log2 M): binary sorting **UNOPTIMIZED SO FAR. USE OF STL ```sort```**.
+- O(log2 M): sorting **UNOPTIMIZED SO FAR. USE OF STL ```sort```**.
 
 #### cost function
 - O(M): evaluation of cost-function. **DANGEROUS BECAUSE USER-PROVIDED**.
