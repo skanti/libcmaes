@@ -9,6 +9,8 @@ enum StorageType {
     row_major = 1
 };
 
+typedef std::vector<double, AlignedAllocator<double, 32>> dvec;
+typedef std::vector<int, AlignedAllocator<int, 32>> ivec;
 
 template<typename T, int A = 32>
 struct Matrix {
@@ -56,8 +58,12 @@ struct Matrix {
     T *data;
 };
 
+struct Solution {
+    dvec params;
+    double f;
+};
 
-typedef std::vector<double, AlignedAllocator<double, 32>> dvec;
-typedef std::vector<int, AlignedAllocator<int, 32>> ivec;
 typedef Matrix<double> dmat;
+
+
 #endif

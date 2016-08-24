@@ -255,7 +255,7 @@ void CMAES::plot(dvec &params) {
 #endif
 }
 
-dvec CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, tss_type tss_) {
+Solution CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, tss_type tss_) {
     // -> settings
     transform_scale_shift = tss_;
     MathKernels::init_random_number_generator(&rnd_stream, seed);
@@ -321,7 +321,8 @@ dvec CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed
     for (int i = 0; i < n_params; i++)
         std::cout << " " << params_best_unscaled[i] << " ";
     std::cout << std::endl;
-    return params_best_unscaled;
+    Solution sol = {params_best_unscaled, f_best};
+    return sol;
 
 }
 

@@ -21,8 +21,7 @@ set(SOURCE_FILES_CPP
 set(SOURCE_FILES_H
         ${SOURCE_DIR}/cpp/CMAES.h
         ${SOURCE_DIR}/cpp/Parameters.h
-        ${SOURCE_DIR}/cpp/Data.h
-        ${SOURCE_DIR}/cpp/Model.h
+        ${SOURCE_DIR}/cpp/World.h
         ${SOURCE_DIR}/cpp/Types.h
         ${SOURCE_DIR}/cpp/AlignedAllocator.h
         ${SOURCE_DIR}/cpp/GnuplotIostream.h

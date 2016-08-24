@@ -78,6 +78,6 @@ int main(int argc, char *argv[]) {
     CMAES cmaes(&toy_world);
     dvec x_typical({1.0e-07, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
     double sigma0 = 1;
-    dvec x = cmaes.fmin(x_typical, sigma0, 6, 999, transform_scale_shift);
+    Solution sol = cmaes.fmin(x_typical, sigma0, 6, 999, transform_scale_shift);
     return 0;
 }

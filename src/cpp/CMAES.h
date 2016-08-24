@@ -14,7 +14,7 @@ public:
 
     CMAES(World *data_);
 
-    dvec fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, tss_type tss_);
+    Solution fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, tss_type tss_);
 
     void sample_offsprings();
 
