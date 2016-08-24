@@ -3,6 +3,7 @@
 #include <iostream>
 #include <numeric>
 #include <iomanip>
+#include <assert.h>
 
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_) {
@@ -249,8 +250,8 @@ void CMAES::plot(dvec &params) {
 #endif
 }
 
-dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_restarts, int seed, cost_type cost_func_,
-                 tss_type tss_) {
+dvec CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, cost_type cost_func_, tss_type tss_) {
+    assert(params_typical_.size() == model->n_params);
     // -> settings
     cost_func = cost_func_;
     transform_scale_shift = tss_;
@@ -260,7 +261,8 @@ dvec CMAES::fmin(dvec &params0_, double sigma0_, dvec &params_typical_, int n_re
     // <-
 
     // -> first guess
-    params0 = params0_;
+    params0.resize(n_params);
+    std::fill(params0.begin(), params0.end(), 1.0);
     params_typical = params_typical_;
     sigma0 = sigma0_;
     // <-
