@@ -1,9 +1,8 @@
 #ifndef LIBCMAES_CMAES_H
 #define LIBCMAES_CMAES_H
 
-#include "Data.h"
+#include "World.h"
 #include "Types.h"
-#include "Model.h"
 #include "Parameters.h"
 #include "mkl_vsl.h"
 //#include "GnuplotIostream.h"
@@ -13,11 +12,9 @@ class CMAES {
 public:
     typedef void (*tss_type)(double *, double *, double *, int);
 
-    typedef double (*cost_type)(dvec &, dvec &, int, Model *, Data *);
+    CMAES(World *data_);
 
-    CMAES(Data *data_, Model *model_);
-
-    dvec fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, cost_type cost_func_, tss_type tss_);
+    dvec fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, tss_type tss_);
 
     void sample_offsprings();
 
@@ -47,10 +44,7 @@ public:
 
     tss_type transform_scale_shift;
 
-    cost_type cost_func;
-
-    Data *data;
-    Model *model;
+    World *world;
     Parameters era;
 
     // initial values

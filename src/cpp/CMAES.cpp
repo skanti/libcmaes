@@ -9,8 +9,8 @@
     ((void) ((e) ? ((void)0) : ((void)printf ("%s:%u: failed assertion `%s'\n", __FILE__, __LINE__, #e), abort())))
 
 
-CMAES::CMAES(Data *data_, Model *model_)
-        : data(data_), model(model_) {
+CMAES::CMAES(World *data_)
+        : world(data_) {
 };
 
 void CMAES::optimize() {
@@ -178,7 +178,8 @@ void CMAES::eigendecomposition() {
 
 double CMAES::cost(double *params) {
     transform_scale_shift(params, params_typical.data(), era.params_tss.data(), n_params);
-    return cost_func(era.params_tss, params_typical, n_params, model, data);
+    world->evaluate(era.params_tss, n_params);
+    return world->cost_func(era.params_tss, params_typical, n_params);
 }
 
 void CMAES::stopping_criteria() {
@@ -254,13 +255,11 @@ void CMAES::plot(dvec &params) {
 #endif
 }
 
-dvec CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, cost_type cost_func_, tss_type tss_) {
-    CMAES_ASSERT(params_typical_.size() == model->n_params);
+dvec CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, tss_type tss_) {
     // -> settings
-    cost_func = cost_func_;
     transform_scale_shift = tss_;
     MathKernels::init_random_number_generator(&rnd_stream, seed);
-    n_params = model->n_params;
+    n_params = params_typical_.size();
     i_run = 0;
     // <-
 

@@ -160,7 +160,7 @@ THE SOFTWARE.
 #ifndef GNUPLOT_DEFAULT_COMMAND
 #ifdef _WIN32
 // "pgnuplot" is considered deprecated according to the Internet.  It may be faster.  It
-// doesn't seem to handle binary data though.
+// doesn't seem to handle binary world though.
 //#	define GNUPLOT_DEFAULT_COMMAND "pgnuplot -persist"
 // On Windows, gnuplot echos commands to stderr.  So we forward its stderr to the bit bucket.
 // Unfortunately, this means you will miss out on legitimate error messages.
@@ -423,23 +423,23 @@ namespace gnuplotio {
 
 // {{{1 Traits and printers for entry datatypes
 //
-// This section contains the mechanisms for sending scalar and tuple data to gnuplot.  Pairs
+// This section contains the mechanisms for sending scalar and tuple world to gnuplot.  Pairs
 // and tuples are sent by appealing to the senders defined for their component scalar types.
 // Senders for arrays are defined in a later section.
 //
 // There are three classes which need to be specialized for each supported datatype:
-// 1. TextSender to send data as text.  The default is to just send using the ostream's `<<`
+// 1. TextSender to send world as text.  The default is to just send using the ostream's `<<`
 // operator.
-// 2. BinarySender to send data as binary, in a format which gnuplot can understand.  There is
+// 2. BinarySender to send world as binary, in a format which gnuplot can understand.  There is
 // no default implementation (unimplemented types raise a compile time error), however
-// inheriting from FlatBinarySender will send the data literally as it is stored in memory.
+// inheriting from FlatBinarySender will send the world literally as it is stored in memory.
 // This suffices for most of the standard built-in types (e.g. uint32_t or double).
-// 3. BinfmtSender sends a description of the data format to gnuplot (e.g. `%uint32`).  Type
+// 3. BinfmtSender sends a description of the world format to gnuplot (e.g. `%uint32`).  Type
 // `show datafile binary datasizes` in gnuplot to see a list of supported formats.
 
 // {{{2 Basic entry datatypes
 
-// Default TextSender, sends data using `<<` operator.
+// Default TextSender, sends world using `<<` operator.
     template<typename T, typename Enable=void>
     struct TextSender {
         static void send(std::ostream &stream, const T &v) {
@@ -456,7 +456,7 @@ namespace gnuplotio {
         static void send(std::ostream &stream, const T &v);
     };
 
-// This is a BinarySender implementation that just sends directly from memory.  Data types
+// This is a BinarySender implementation that just sends directly from memory.  World types
 // which can be sent this way can have their BinarySender specialization inherit from this.
     template<typename T>
     struct FlatBinarySender {
@@ -474,7 +474,7 @@ namespace gnuplotio {
         static void send(std::ostream &);
     };
 
-// BinfmtSender implementations for basic data types supported by gnuplot.
+// BinfmtSender implementations for basic world types supported by gnuplot.
 // Types from boost/cstdint.hpp are used because VS2008 doesn't have stdint.h.
     template<>
     struct BinfmtSender<float> {
@@ -526,7 +526,7 @@ namespace gnuplotio {
         static void send(std::ostream &stream) { stream << "%uint64"; }
     };
 
-// BinarySender implementations for basic data types supported by gnuplot.  These types can
+// BinarySender implementations for basic world types supported by gnuplot.  These types can
 // just be sent as stored in memory, so all these senders inherit from FlatBinarySender.
     template<>
     struct BinarySender<float> : public FlatBinarySender<float> {
@@ -828,7 +828,7 @@ namespace gnuplotio {
 
 // {{{1 ArrayTraits and Range classes
 //
-// This section handles sending of array data to gnuplot.  It is rather complicated because of
+// This section handles sending of array world to gnuplot.  It is rather complicated because of
 // the diversity of storage schemes supported.  For example, it treats a
 // `std::pair<std::vector<T>, std::vector<U>>` in the same way as a
 // `std::vector<std::pair<T, U>>`, iterating through the two arrays in lockstep, and sending
@@ -899,7 +899,7 @@ namespace gnuplotio {
         typedef Error_WasNotContainer range_type;
         // Tells whether T is in fact a container type.
         static const bool is_container = false;
-        // This flag supports the legacy behavior of automatically guessing whether the data should
+        // This flag supports the legacy behavior of automatically guessing whether the world should
         // be treated as column major.  This guessing happens when `send()` is called rather than
         // `send1d()` or `send2d()`.  This is deprecated, but is still supported for reverse
         // compatibility.
@@ -1258,14 +1258,14 @@ namespace gnuplotio {
 
 // {{{1 Array printing functions
 //
-// This section coordinates the sending of data to gnuplot.  The ArrayTraits mechanism tells us
+// This section coordinates the sending of world to gnuplot.  The ArrayTraits mechanism tells us
 // about nested containers and provides iterators over them.  Here we make use of this,
 // deciding what dimensions should be treated as rows, columns, or blocks, telling gnuplot the
 // size of the array if needed, and so on.
 
-// If this is set, then text-mode data will be sent in a format that is not compatible with
+// If this is set, then text-mode world will be sent in a format that is not compatible with
 // gnuplot, but which helps the programmer tell what the library is thinking.  Basically it
-// puts brackets around groups of items and puts a message delineating blocks of data.
+// puts brackets around groups of items and puts a message delineating blocks of world.
     static bool debug_array_print = 0;
 
 // This is thrown when an empty container is being plotted.  This exception should always
@@ -1281,10 +1281,10 @@ namespace gnuplotio {
 // ostream.  These tags are passed to the PrintMode template argument of the functions in this
 // section.
 //
-// ModeText   - Sends the data in an array in text format
-// ModeBinary - Sends the data in an array in binary format
-// ModeBinfmt - Sends the gnuplot format code for binary data (e.g. "%double%double")
-// ModeSize   - Sends the size of an array.  Needed when sending binary data.
+// ModeText   - Sends the world in an array in text format
+// ModeBinary - Sends the world in an array in binary format
+// ModeBinfmt - Sends the gnuplot format code for binary world (e.g. "%double%double")
+// ModeSize   - Sends the size of an array.  Needed when sending binary world.
     struct ModeText {
         static const bool is_text = 1;
         static const bool is_binfmt = 0;
@@ -1395,11 +1395,11 @@ namespace gnuplotio {
 
 // }}}2
 
-// The data is processed using several levels of functions that call each other in sequence,
+// The world is processed using several levels of functions that call each other in sequence,
 // each defined in a subsection of code below.  Because C++ wants you to declare a function
 // before using it, we begin with the innermost function.  So in order to see the sequence in
 // which these are called, you should read the following subsections in reverse order.  Nested
-// arrays are formated into blocks (for 2D data) and lines (for 1D or 2D data), then further
+// arrays are formated into blocks (for 2D world) and lines (for 1D or 2D world), then further
 // nesting levels are formatted into columns.  Also tag dispatching is used in order to define
 // various sorts of behavior.  Each of these tasks is handled by one of the following
 // subsections.
@@ -1429,7 +1429,7 @@ namespace gnuplotio {
 // {{{2 deref_and_print()
 //
 // Dereferences and prints the given range (iterator).  At this point we are done with treating
-// containers as blocks (for 2D data) and lines (for 1D or 2D data).  Any further levels of
+// containers as blocks (for 2D world) and lines (for 1D or 2D world).  Any further levels of
 // nested containers will at this point be treated as columns.
 
 // If arg is not a container, then print it via send_scalar().
@@ -1482,15 +1482,15 @@ namespace gnuplotio {
 
 // {{{2 print_block()
 //
-// Here we format nested containers into blocks (for 2D data) and lines.  Actually, block and
+// Here we format nested containers into blocks (for 2D world) and lines.  Actually, block and
 // line formatting is only truely needed for text mode output, but for uniformity this function
 // is also invoked in binary mode (the PrintMode tag determines the output mode).  If the goal
 // is to just print the array size or the binary format string, then the loops exit after the
 // first iteration.
 //
-// The Depth argument tells how deep to recurse.  It will be either `2` for 2D data, formatted
-// into blocks and lines, with empty lines between blocks, or `1` for 1D data formatted into
-// lines but not blocks.  Gnuplot only supports 1D and 2D data, but if it were to support 3D in
+// The Depth argument tells how deep to recurse.  It will be either `2` for 2D world, formatted
+// into blocks and lines, with empty lines between blocks, or `1` for 1D world formatted into
+// lines but not blocks.  Gnuplot only supports 1D and 2D world, but if it were to support 3D in
 // the future (e.g. volume rendering), all that would be needed would be some trivial changes
 // in this section.  After Depth number of nested containers have been recursed into, control
 // is passed to deref_and_print(), which treats any further nested containers as columns.
@@ -1855,7 +1855,7 @@ namespace gnuplotio {
 
 // }}}2
 
-// {{{2 Deprecated data sending interface that guesses an appropriate OrganizationMode.  This is here
+// {{{2 Deprecated world sending interface that guesses an appropriate OrganizationMode.  This is here
 // for reverse compatibility.  Don't use it.  A warning will be printed if
 // GNUPLOT_DEPRECATE_WARN is defined.
 
@@ -1883,7 +1883,7 @@ namespace gnuplotio {
 
 // }}}2
 
-// {{{2 Public (documented) data sending interface.
+// {{{2 Public (documented) world sending interface.
 //
 // It seems odd to define 16 different functions, but I think this ends up being the most
 // convenient in terms of usage by the end user.

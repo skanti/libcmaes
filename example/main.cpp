@@ -6,12 +6,20 @@
 #include <iomanip>
 #include "omp.h"
 
-struct ToyData1 : public Data {
-    void create_synthetic_data() {
+
+struct ToyWorld : World {
+    int n_data; // <- number of world points
+    int n_dim; // <- number of dimensions (Impedance has 2 dimensions: z-real and z-imag)
+    dvec x; // <- input 1-D array (frequency)
+    dmat y_data, y_model; // <- output N-D array (z-values)
+
+    // read from .dat file
+    void read_data() {
         n_data = 50;
-        dim = 2;
+        n_dim = 2;
         x.resize(n_data);
-        y.reserve_and_resize(n_data, dim);
+        y_data.reserve_and_resize(n_data, n_dim);
+        y_model.reserve_and_resize(n_data, n_dim);
 
         // fill
         MathKernels::logspace(x.data(), -1, 5, n_data);
@@ -25,59 +33,51 @@ struct ToyData1 : public Data {
                                      + params[2] / (1.0 + std::pow<double>(jc * x[i] * params[3], params[4]))
                                      + params[5] / (1.0 + std::pow<double>(jc * x[i] * params[6], params[7]))
                                      + params[8] / (1.0 + std::pow<double>(jc * x[i] * params[9], params[10]));
-            y(i, 0) = r.real();
-            y(i, 1) = r.imag();
+            y_data(i, 0) = r.real();
+            y_data(i, 1) = r.imag();
         }
     }
-};
 
-struct ToyModel1 : public Model {
-    ToyModel1(int n_data_, int dim_) : Model(n_data_, dim_) {
-        n_params = 11;
-    };
-
-    void evaluate(dvec &x, dvec &params) {
+    // actual equivalent circuit units
+    void evaluate(dvec &params, int n_params) {
         std::complex<double> jc(0, 1);
-        for (int i = 0; i < n_model; i++) {
+        for (int i = 0; i < n_data; i++) {
             // L + Rs + RQ1 + RQ2 + RQ3
             std::complex<double> r = jc * x[i] * params[0] + params[1]
                                      + params[2] / (1.0 + std::pow(jc * x[i] * params[3], params[4]))
                                      + params[5] / (1.0 + std::pow(jc * x[i] * params[6], params[7]))
                                      + params[8] / (1.0 + std::pow(jc * x[i] * params[9], params[10]));
-            y(i, 0) = r.real();
-            y(i, 1) = r.imag();
+            y_model(i, 0) = r.real();
+            y_model(i, 1) = r.imag();
         }
+    }
+
+    double cost_func(dvec &params, dvec &params_typical, int n_params) {
+        double cost = 0.0;
+        for (int i = 0; i < n_dim; i++) {
+            cost += MathKernels::least_squares(y_model.memptr(i), y_data.memptr(i), n_data);
+        }
+        return cost;
     }
 };
 
 
-void transform_scale_shift(double *params, double *params_typical, double *params_tss, int n) {
+inline void transform_scale_shift(double *params, double *params_typical, double *params_tss, int n) {
     for (int i = 0; i < n; i++) {
         params_tss[i] = params[i] * params[i] * params_typical[i];
     }
 }
 
-inline double cost_func(dvec &params, dvec &params_typical, int n_params, Model *model, Data *data) {
-    model->evaluate(data->x, params);
-    double cost = 0.0;
-    for (int i = 0; i < model->dim; i++) {
-        cost += MathKernels::least_squares(model->y.memptr(i), data->y.memptr(i), data->n_data);
-    }
-    return cost;
-}
-
 int main(int argc, char *argv[]) {
     std::cout << "***********************************************************" << std::endl;
-    //-> data
-    ToyData1 toy_data;
-    toy_data.create_synthetic_data();
+    //-> world
+    ToyWorld toy_world;
+    toy_world.read_data();
     // <-
-    // -> model
-    ToyModel1 toy_model(toy_data.n_data, toy_data.dim);
-    // <-
-    CMAES cmaes(&toy_data, &toy_model);
+
+    CMAES cmaes(&toy_world);
     dvec x_typical({1.0e-07, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
     double sigma0 = 1;
-    dvec x = cmaes.fmin(x_typical, sigma0, 6, 999, cost_func, transform_scale_shift);
+    dvec x = cmaes.fmin(x_typical, sigma0, 6, 999, transform_scale_shift);
     return 0;
 }
