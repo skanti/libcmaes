@@ -285,11 +285,7 @@ dvec CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed
     // <-
 
     // -> first run
-    Timer::start();
     optimize();
-    Timer::stop();
-    std::cout << "Timing (ms): " << Timer::get_timing() << std::endl;
-    exit(0);
     budget[0] += era.i_func_eval;
     // <-
 
