@@ -5,6 +5,11 @@
 #include <iomanip>
 #include <assert.h>
 
+
+#define CMAES_ASSERT(e)  \
+    ((void) ((e) ? ((void)0) : ((void)printf ("%s:%u: failed assertion `%s'\n", __FILE__, __LINE__, #e), abort())))
+
+
 CMAES::CMAES(Data *data_, Model *model_)
         : data(data_), model(model_) {
 };
@@ -251,7 +256,7 @@ void CMAES::plot(dvec &params) {
 }
 
 dvec CMAES::fmin(dvec &params_typical_, double sigma0_, int n_restarts, int seed, cost_type cost_func_, tss_type tss_) {
-    assert(params_typical_.size() == model->n_params);
+    CMAES_ASSERT(params_typical_.size() == model->n_params);
     // -> settings
     cost_func = cost_func_;
     transform_scale_shift = tss_;
