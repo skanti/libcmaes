@@ -10,18 +10,17 @@ enum StorageType {
 };
 
 
-template<typename T, typename A = AlignedAllocator<T, 32>>
+template<typename T, int A = 32>
 struct Matrix {
-    Matrix(int n_rows_, int n_cols_)
-            : n_rows(n_rows_), n_cols(n_cols_), n_rows_reserve(n_rows), n_cols_reserve(n_cols),
-              data(n_rows * n_cols) {};
 
-    Matrix() : n_rows(0), n_cols(0), data(0) {};
+    Matrix() : n_rows(0), n_cols(0), n_rows_reserve(0), n_cols_reserve(0), data(0) {};
+
+    ~Matrix() { if (data != NULL) free(data); }
 
     void reserve(int n_rows_reserve_, int n_cols_reserve_) {
         n_rows_reserve = n_rows_reserve_;
         n_cols_reserve = n_cols_reserve_;
-        data.resize(n_rows_reserve * n_cols_reserve);
+        posix_memalign((void **) &data, A, n_rows_reserve * n_cols_reserve * sizeof(T));
     }
 
 
@@ -44,21 +43,17 @@ struct Matrix {
         }
     }
 
-    inline T *memptr(int j) {
-        return data.data() + j * n_rows_reserve;
+    inline T *memptr(int j = 0) {
+        return data + j * n_rows_reserve;
     }
 
     inline T &operator()(int i, int j) {
         return data[j * n_rows_reserve + i];
     }
 
-    inline double *memptr() {
-        return data.data();
-    }
-
     int n_rows, n_cols;
     int n_rows_reserve, n_cols_reserve;
-    std::vector<T, A> data;
+    T *data;
 };
 
 

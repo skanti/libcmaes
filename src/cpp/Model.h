@@ -6,8 +6,7 @@
 struct Model {
     Model(int n_data_, int dim_)
             : n_model(n_data_),
-              dim(dim_),
-              y(n_model, dim) {};
+              dim(dim_) { y.reserve_and_resize(n_model, dim); };
 
     virtual void evaluate(dvec &x, dvec &params) = 0;
 
