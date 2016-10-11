@@ -78,9 +78,9 @@ struct ToyWorld : World {
 };
 
 
-inline void transform_scale_shift(double *params, double *params_typical, double *params_tss, int n_params) {
+inline void transform_scale_shift(double *x, double *x_typical, double *x_tss, int n_params) {
     for (int i = 0; i < n_params; i++) {
-        params_tss[i] = params[i] * params[i] * params_typical[i];
+        x_tss[i] = x[i] * x[i] * x_typical[i];
     }
 }
 
