@@ -51,6 +51,7 @@ class EISData:
         z[-e:] = EISData.z[-e:]
         z.real = spsig.wiener(z.real, mysize=n_kernel, noise=0.01)
         z.imag = spsig.wiener(z.imag, mysize=n_kernel, noise=0.01)
+
         # <-
         # -> crop
         EISData.z[s:-s] = z[s:-s]
@@ -68,18 +69,18 @@ for filename in all_files:
     print(rawname)
     EISData.load_data(filename)
     plt.figure(figsize=(15, 5))
-    plt.subplot(1, 2, 1)
+    #plt.subplot(1, 2, 1)
     plt.gca().invert_yaxis()
     plt.scatter(EISData.z.real, EISData.z.imag, color='r', marker='o', alpha=0.5)
     EISData.filter(3)
-    plt.subplot(1, 2, 2)
+    #plt.subplot(1, 2, 2)
     plt.scatter(EISData.z.real, EISData.z.imag, color='g', marker='o', alpha=0.5)
-    plt.gca().invert_yaxis()
-    plt.tight_layout()
+    #plt.gca().invert_yaxis()
+    #plt.tight_layout()
     plt.show()
-    np.savetxt(filename_i, [EISData.n], fmt='%d')
-    f = open(filename_i, 'ab')
-    np.savetxt(f, EISData.w)
-    np.savetxt(f, EISData.z.real)
-    np.savetxt(f, EISData.z.imag)
-    f.close()
+    #np.savetxt(filename_i, [EISData.n], fmt='%d')
+    #f = open(filename_i, 'ab')
+    #np.savetxt(f, EISData.w)
+    #np.savetxt(f, EISData.z.real)
+    #np.savetxt(f, EISData.z.imag)
+    #f.close()

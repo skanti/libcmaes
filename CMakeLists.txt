@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(libcmaes CXX)
+project(cmaes CXX)
 
 set(CMAKE_CXX_COMPILER "/usr/local/bin/icpc")
 
@@ -13,18 +13,17 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
 set(SOURCE_DIR ./src)
 
 set(SOURCE_FILES_CPP
-        ${SOURCE_DIR}/cpp/CMAES.cpp
+        ${SOURCE_DIR}/cpp/Engine.cpp
         ${SOURCE_DIR}/cpp/MathKernels.cpp
-        ${SOURCE_DIR}/cpp/Parameters.cpp
+        ${SOURCE_DIR}/cpp/Parameter.cpp
         )
 
 set(SOURCE_FILES_H
-        ${SOURCE_DIR}/cpp/CMAES.h
-        ${SOURCE_DIR}/cpp/Parameters.h
+        ${SOURCE_DIR}/cpp/Engine.h
+        ${SOURCE_DIR}/cpp/Parameter.h
         ${SOURCE_DIR}/cpp/World.h
-        ${SOURCE_DIR}/cpp/Types.h
+        ${SOURCE_DIR}/cpp/CMAESTypes.h
         ${SOURCE_DIR}/cpp/AlignedAllocator.h
-        ${SOURCE_DIR}/cpp/GnuplotIostream.h
         src/cpp/MathKernels.h)
 
 
@@ -35,5 +34,5 @@ link_directories(${MKL_DIR}/lib)
 add_library(cmaes ${SOURCE_FILES_CPP} ${SOURCE_FILES_H})
 target_link_libraries(cmaes mkl_intel_lp64 mkl_core mkl_sequential pthread m dl)
 
-add_executable(libcmaes_example ./example/main.cpp)
-target_link_libraries(libcmaes_example cmaes)
+add_executable(cmaes_example ./example/main.cpp)
+target_link_libraries(cmaes_example cmaes)

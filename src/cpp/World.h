@@ -1,7 +1,7 @@
 #ifndef LIBCMAES_DATA_H
 #define LIBCMAES_DATA_H
 
-#include "Types.h"
+#include "CMAESTypes.h"
 #include <string>
 
 struct World {

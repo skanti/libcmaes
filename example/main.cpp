@@ -1,4 +1,4 @@
-#include "CMAES.h"
+#include "Engine.h"
 #include <fstream>
 #include <complex>
 #include "MathKernels.h"
@@ -6,12 +6,28 @@
 #include <iomanip>
 #include "omp.h"
 
+void logspace(double *v, double a, double b, int n) {
+    double d = (b - a) / (n - 1);
+    for (int i = 0; i < n; i++) {
+        v[i] = std::pow(10, d * i);
+    }
+}
+
+double least_squares(double *v1, double *v2, int n) {
+    double sum_least_squares = 0;
+    for (int i = 0; i < n; i++) {
+        double e = (v1[i] - v2[i]);
+        sum_least_squares += e * e;
+    }
+    return sum_least_squares;
+}
+
 
 struct ToyWorld : World {
-    int n_data; // <- number of world points
-    int n_dim; // <- number of dimensions (Impedance has 2 dimensions: z-real and z-imag)
-    dvec x; // <- input 1-D array (frequency)
-    dmat y_data, y_model; // <- output N-D array (z-values)
+    int n_data; // <-- number of world points
+    int n_dim; // <-- number of dimensions (Impedance has 2 dimensions: z-real and z-imag)
+    dvec x; // <-- input 1-D array (frequency)
+    dmat y_data, y_model; // <-- output N-D array (z-values)
 
     // read from .dat file
     void read_data() {
@@ -22,7 +38,7 @@ struct ToyWorld : World {
         y_model.reserve_and_resize(n_data, n_dim);
 
         // fill
-        MathKernels::logspace(x.data(), -1, 5, n_data);
+        logspace(x.data(), -1, 5, n_data);
         dvec params(
                 {5.37e-7, 0.91, 0.11, 0.25, 0.61, 0.36, 3e-4, 0.86119, 0.35, 1e-4, 1.0});
 
@@ -55,15 +71,15 @@ struct ToyWorld : World {
     double cost_func(dvec &params, dvec &params_typical, int n_params) {
         double cost = 0.0;
         for (int i = 0; i < n_dim; i++) {
-            cost += MathKernels::least_squares(y_model.memptr(i), y_data.memptr(i), n_data);
+            cost += least_squares(y_model.memptr(i), y_data.memptr(i), n_data);
         }
         return cost;
     }
 };
 
 
-inline void transform_scale_shift(double *params, double *params_typical, double *params_tss, int n) {
-    for (int i = 0; i < n; i++) {
+inline void transform_scale_shift(double *params, double *params_typical, double *params_tss, int n_params) {
+    for (int i = 0; i < n_params; i++) {
         params_tss[i] = params[i] * params[i] * params_typical[i];
     }
 }
@@ -75,9 +91,9 @@ int main(int argc, char *argv[]) {
     toy_world.read_data();
     // <-
 
-    CMAES cmaes(&toy_world);
+    CMAES::Engine cmaes(&toy_world);
     dvec x_typical({1.0e-07, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x_typical, sigma0, 6, 999, transform_scale_shift);
+    Solution sol = cmaes.fmin(x_typical, sigma0, 10, 99999, transform_scale_shift);
     return 0;
 }
