@@ -12,10 +12,6 @@ namespace CMAES {
     ((void) ((e) ? ((void)0) : ((void)printf ("%s:%u: failed assertion `%s'\n", __FILE__, __LINE__, #e), abort())))
 
 
-    Engine::Engine(World *data_)
-            : world(data_) {
-    };
-
     void Engine::optimize() {
 #ifndef NDEBUG
         std::cout << "\nstarting run. "
@@ -182,9 +178,8 @@ namespace CMAES {
     }
 
     double Engine::cost(double *params) {
-        world->transform_scale_shift(params, x_typical.data(), era.x_tss.data(), n_params);
-        world->evaluate(era.x_tss, n_params);
-        return world->cost_func(era.x_tss, x_typical, n_params);
+        transform_scale_shift(params, x_typical.data(), era.x_tss.data(), n_params);
+        return cost_func(era.x_tss, x_typical, n_params);
     }
 
     void Engine::stopping_criteria() {
@@ -260,7 +255,10 @@ namespace CMAES {
 #endif
     }
 
-    Solution Engine::fmin(dvec &x_typical_, double sigma0_, int n_restarts, int seed) {
+    Solution Engine::fmin(dvec &x_typical_, int n_params_, double sigma0_, int n_restarts, int seed,
+                          std::function<double(dvec &, dvec &, int)> costf, tss_type tssf) {
+        cost_func = costf;
+        transform_scale_shift = tssf;
         // -> settings
         MathKernels::init_random_number_generator(&rnd_stream, seed);
         n_params = x_typical_.size();
@@ -319,7 +317,7 @@ namespace CMAES {
         cost(x_best.data());
         plot(x_best);
         dvec params_best_unscaled(n_params);
-        world->transform_scale_shift(x_best.data(), x_typical.data(), params_best_unscaled.data(), n_params);
+        transform_scale_shift(x_best.data(), x_typical.data(), params_best_unscaled.data(), n_params);
         std::cout << "f_best: " << f_best << std::endl;
         std::cout << "params:";
         for (int i = 0; i < n_params; i++)

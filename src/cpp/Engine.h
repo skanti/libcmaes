@@ -5,13 +5,22 @@
 #include "CMAESTypes.h"
 #include "Parameter.h"
 #include "mkl_vsl.h"
+#include <functional>
 
 namespace CMAES {
     class Engine {
     public:
-        Engine(World *data_);
+        typedef void (*tss_type)(double *, double *, double *, int);
 
-        Solution fmin(dvec &x_typical_, double sigma0_, int n_restarts, int seed);
+        typedef std::function<double(dvec &, dvec &, int)> cost_type;
+
+        Solution
+        fmin(dvec &x_typical_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type, tss_type tssf);
+
+    private:
+        tss_type transform_scale_shift;
+
+        cost_type cost_func;
 
         void sample_offsprings();
 
@@ -39,7 +48,6 @@ namespace CMAES {
 
         double cost(double *params);
 
-        World *world;
         Parameter era;
 
         // initial values
