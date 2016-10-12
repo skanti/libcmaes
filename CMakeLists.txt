@@ -3,7 +3,7 @@ project(cmaes CXX)
 
 set(CMAKE_CXX_COMPILER "/usr/local/bin/icpc")
 
-set(OPTIMIZATION_FLAGS "-O3 -march=native -m64")
+set(OPTIMIZATION_FLAGS " -m64")
 set(CMAKE_CXX_FLAGS "-Wall ${CMAKE_CXX_FLAGS} ${OPTIMIZATION_FLAGS} -std=c++11 -DNDEBUG")
 
 set(CMAKE_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
