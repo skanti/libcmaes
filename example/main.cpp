@@ -75,14 +75,13 @@ struct ToyWorld : World {
         }
         return cost;
     }
-};
 
-
-inline void transform_scale_shift(double *x, double *x_typical, double *x_tss, int n_params) {
-    for (int i = 0; i < n_params; i++) {
-        x_tss[i] = x[i] * x[i] * x_typical[i];
+    void transform_scale_shift(double *x, double *x_typical, double *x_tss, int n_params) {
+        for (int i = 0; i < n_params; i++) {
+            x_tss[i] = x[i] * x[i] * x_typical[i];
+        }
     }
-}
+};
 
 int main(int argc, char *argv[]) {
     std::cout << "***********************************************************" << std::endl;
@@ -94,6 +93,6 @@ int main(int argc, char *argv[]) {
     CMAES::Engine cmaes(&toy_world);
     dvec x_typical({1.0e-07, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x_typical, sigma0, 10, 99999, transform_scale_shift);
+    Solution sol = cmaes.fmin(x_typical, sigma0, 10, 99999);
     return 0;
 }

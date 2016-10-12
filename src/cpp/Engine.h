@@ -9,11 +9,9 @@
 namespace CMAES {
     class Engine {
     public:
-        typedef void (*tss_type)(double *, double *, double *, int);
-
         Engine(World *data_);
 
-        Solution fmin(dvec &x_typical_, double sigma0_, int n_restarts, int seed, tss_type tss_);
+        Solution fmin(dvec &x_typical_, double sigma0_, int n_restarts, int seed);
 
         void sample_offsprings();
 
@@ -40,8 +38,6 @@ namespace CMAES {
         void optimize();
 
         double cost(double *params);
-
-        tss_type transform_scale_shift;
 
         World *world;
         Parameter era;
