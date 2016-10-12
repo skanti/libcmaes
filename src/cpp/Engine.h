@@ -15,7 +15,7 @@ namespace CMAES {
         typedef std::function<double(dvec &, dvec &, int)> cost_type;
 
         Solution
-        fmin(dvec &x_typical_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type, tss_type tssf);
+        fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type, tss_type tssf);
 
     private:
         tss_type transform_scale_shift;

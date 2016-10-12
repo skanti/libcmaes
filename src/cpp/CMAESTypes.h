@@ -1,13 +1,8 @@
-#ifndef LIBCMAES_TYPES_H
-#define LIBCMAES_TYPES_H
+#ifndef CMAES_TYPES_H
+#define CMAES_TYPES_H
 
 #include <vector>
 #include "AlignedAllocator.h"
-
-enum StorageType {
-    column_major = 0,
-    row_major = 1
-};
 
 typedef std::vector<double, AlignedAllocator<double, 32>> dvec;
 typedef std::vector<int, AlignedAllocator<int, 32>> ivec;

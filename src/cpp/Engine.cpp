@@ -255,20 +255,20 @@ namespace CMAES {
 #endif
     }
 
-    Solution Engine::fmin(dvec &x_typical_, int n_params_, double sigma0_, int n_restarts, int seed,
+    Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed,
                           std::function<double(dvec &, dvec &, int)> costf, tss_type tssf) {
         cost_func = costf;
         transform_scale_shift = tssf;
         // -> settings
         MathKernels::init_random_number_generator(&rnd_stream, seed);
-        n_params = x_typical_.size();
+        n_params = n_params_;
         i_run = 0;
         // <-
 
         // -> first guess
         x0.resize(n_params);
         std::fill(x0.begin(), x0.end(), 1.0);
-        x_typical = x_typical_;
+        x_typical = x0_;
         sigma0 = sigma0_;
         // <-
 

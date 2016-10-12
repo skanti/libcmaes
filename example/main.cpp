@@ -22,16 +22,7 @@ double least_squares(double *v1, double *v2, int n) {
     return sum_least_squares;
 }
 
-int main(int argc, char *argv[]) {
-    std::cout << "***********************************************************" << std::endl;
-    //-> cerate and fill synthetic data
-    int n_data = 50; // <-- number of world points
-    int n_dim = 2; // <-- number of dimensions (Impedance has 2 dimensions: z-real and z-imag)
-    dvec x; // <-- input 1-D array (frequency)
-    dmat y_data, y_model; // <-- output N-D array (z-values)
-    x.resize(n_data);
-    y_data.reserve_and_resize(n_data, n_dim);
-    y_model.reserve_and_resize(n_data, n_dim);
+void create_synthethic_data(dvec &x, dmat &y_data, int n_data) {
 
     logspace(x.data(), -1, 5, n_data);
     dvec params0(
@@ -47,6 +38,19 @@ int main(int argc, char *argv[]) {
         y_data(i, 0) = r.real();
         y_data(i, 1) = r.imag();
     }
+}
+
+int main(int argc, char *argv[]) {
+    std::cout << "***********************************************************" << std::endl;
+    //-> cerate and fill synthetic data
+    int n_data = 50;
+    int n_dim = 2;
+    dvec x;
+    dmat y_data, y_model;
+    x.resize(n_data);
+    y_data.reserve_and_resize(n_data, n_dim);
+    y_model.reserve_and_resize(n_data, n_dim);
+    create_synthethic_data(x, y_data, n_data);
     // <-
 
     // -> evaluation function
@@ -84,8 +88,8 @@ int main(int argc, char *argv[]) {
     // <-
 
     CMAES::Engine cmaes;
-    dvec x_typical({1.0e-05, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
+    dvec x0({1.0e-05, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x_typical, 11, sigma0, 10, 42, cost_func, transform_scale_shift);
+    Solution sol = cmaes.fmin(x0, 11, sigma0, 10, 42, cost_func, transform_scale_shift);
     return 0;
 }
