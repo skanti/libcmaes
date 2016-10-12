@@ -42,7 +42,7 @@ void create_synthethic_data(dvec &x, dmat &y_data, int n_data) {
 
 int main(int argc, char *argv[]) {
     std::cout << "***********************************************************" << std::endl;
-    //-> cerate and fill synthetic data
+    //-> create and fill synthetic data
     int n_data = 50;
     int n_dim = 2;
     dvec x;

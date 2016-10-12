@@ -1,7 +1,6 @@
 #ifndef CMAES_ENGINE_H
 #define CMAES_ENGINE_H
 
-#include "World.h"
 #include "CMAESTypes.h"
 #include "Parameter.h"
 #include "mkl_vsl.h"
