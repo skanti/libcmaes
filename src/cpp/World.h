@@ -2,7 +2,6 @@
 #define LIBCMAES_DATA_H
 
 #include "CMAESTypes.h"
-#include <string>
 
 struct World {
 

@@ -1,5 +1,6 @@
 #include "Engine.h"
 #include "MathKernels.h"
+#include <cmath>
 #include <iostream>
 #include <numeric>
 #include <iomanip>
