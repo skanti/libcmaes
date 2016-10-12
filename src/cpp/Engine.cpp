@@ -282,7 +282,6 @@ namespace CMAES {
         era.reinit(n_offsprings, n_params, x0, sigma0);
         x_best = x0;
         double f_cand = cost(x_best.data());
-        x_best = x0;
         f_best = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
         i_func_eval_tot = 0;
         int budget[2] = {0, 0};

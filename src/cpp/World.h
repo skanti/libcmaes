@@ -10,7 +10,7 @@ struct World {
     virtual double cost_func(dvec &params, dvec &params_typical, int n_params)  = 0;
 
     virtual void transform_scale_shift(double *x, double *x_typical, double *x_tss, int n_params) {
-        std::swap(x, x_tss);
+        std::copy<double *, double *>(x, x + n_params, x_tss);
     }
 };
 
