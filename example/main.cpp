@@ -90,7 +90,11 @@ int main(int argc, char *argv[]) {
     };
     // <-
 
+
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x0, 11, sigma0, 10, 9999, cost_func, transform_scale_shift);
+    int seed = 999;
+    int n_params = 11;
+    int n_restarts = 10;
+    Solution sol = cmaes.fmin(x0, n_params, sigma0, n_restarts, seed, cost_func, transform_scale_shift);
     return 0;
 }
