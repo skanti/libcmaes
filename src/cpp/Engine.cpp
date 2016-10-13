@@ -8,10 +8,6 @@
 
 namespace CMAES {
 
-#define CMAES_ASSERT(e)  \
-    ((void) ((e) ? ((void)0) : ((void)printf ("%s:%u: failed assertion `%s'\n", __FILE__, __LINE__, #e), abort())))
-
-
     void Engine::optimize() {
 #ifndef NDEBUG
         std::cout << "\nstarting run. "
@@ -32,7 +28,7 @@ namespace CMAES {
             update_stepsize();
             stopping_criteria();
 #ifndef NDEBUG
-            if (era.i_iteration % n_interval_plot == 0) {
+            if (era.i_iteration % n_interval_print == 0) {
                 plot(era.params_mean);
             }
 #endif
@@ -177,9 +173,9 @@ namespace CMAES {
                            era.n_params, era.n_params, 1.0, 0, era.n_params, era.n_params, era.n_params);
     }
 
-    double Engine::cost(double *params) {
-        transform_scale_shift(params, x_typical.data(), era.x_tss.data(), n_params);
-        return cost_func(era.x_tss, x_typical, n_params);
+    double Engine::cost(double *x) {
+        transform_scale_shift(x, era.x_tss.data(), n_params);
+        return cost_func(era.x_tss, n_params);
     }
 
     void Engine::stopping_criteria() {
@@ -248,15 +244,15 @@ namespace CMAES {
         // <-
     }
 
-    void Engine::plot(dvec &params) {
+    void Engine::print(dvec &params) {
 #ifndef NDEBUG
         std::cout << "f0: " << std::setprecision(std::numeric_limits<double>::digits10 + 1) << era.f_offsprings[0]
                   << std::endl;
 #endif
     }
 
-    Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed,
-                          std::function<double(dvec &, dvec &, int)> costf, tss_type tssf) {
+    Solution
+    Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type costf, tss_type tssf) {
         cost_func = costf;
         transform_scale_shift = tssf;
         // -> settings
@@ -273,8 +269,8 @@ namespace CMAES {
         // <-
 
         // -> prepare fmin
-        n_offsprings0 = (int) (4 + 3 * std::log(n_params));
-        n_offsprings = n_offsprings0;
+        int n_offsprings0 = (int) (4 + 3 * std::log(n_params));
+        int n_offsprings = n_offsprings0;
         int n_offsprings_max = n_offsprings0 * (1 << n_restarts);
         era.reserve(n_offsprings_max, n_params);
         era.reinit(n_offsprings, n_params, x0, sigma0);
@@ -305,7 +301,7 @@ namespace CMAES {
                 optimize();
                 budget[1] += era.i_func_eval;
             }
-            n_offsprings = n_regime1;
+            int n_offsprings = n_regime1;
             era.reinit(n_offsprings, n_params, x0, sigma0);
             optimize();
             budget[0] += era.i_func_eval;
@@ -313,18 +309,18 @@ namespace CMAES {
         }
         // <-
 
-        // -> plot final result
+        // -> print final result
         cost(x_best.data());
-        plot(x_best);
+        print(x_best);
         dvec params_best_unscaled(n_params);
-        transform_scale_shift(x_best.data(), x_typical.data(), params_best_unscaled.data(), n_params);
+        transform_scale_shift(x_best.data(), params_best_unscaled.data(), n_params);
         std::cout << "f_best: " << f_best << std::endl;
         std::cout << "params:";
         for (int i = 0; i < n_params; i++)
             std::cout << " " << params_best_unscaled[i] << " ";
         std::cout << std::endl;
-        Solution sol = {params_best_unscaled, f_best};
-        return sol;
+        // <-
+        return Solution{params_best_unscaled, f_best};
 
     }
 

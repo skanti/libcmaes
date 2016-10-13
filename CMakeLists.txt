@@ -21,7 +21,6 @@ set(SOURCE_FILES_CPP
 set(SOURCE_FILES_H
         ${SOURCE_DIR}/cpp/Engine.h
         ${SOURCE_DIR}/cpp/Parameter.h
-        ${SOURCE_DIR}/cpp/World.h
         ${SOURCE_DIR}/cpp/CMAESTypes.h
         ${SOURCE_DIR}/cpp/AlignedAllocator.h
         src/cpp/MathKernels.h)
