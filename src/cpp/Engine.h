@@ -57,7 +57,7 @@ namespace CMAES {
         int i_run; // <- restart counter.
         dvec x_best; // <- current best estimate.
         double f_best; // <- cost of x_best.
-        int i_func_eval_tot; // <- function evaluation counter.
+        int i_func_eval; // <- function evaluation counter.
 
         VSLStreamStatePtr rnd_stream; // <- random number stream
 

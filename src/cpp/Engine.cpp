@@ -61,7 +61,7 @@ namespace CMAES {
             era.f_offsprings[i] = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
         }
         era.i_func_eval += era.n_offsprings;
-        i_func_eval_tot += era.n_offsprings;
+        i_func_eval += era.n_offsprings;
         // <-
 
         // -> sorting
@@ -277,7 +277,7 @@ namespace CMAES {
         x_best = x0;
         double f_cand = cost(x_best.data());
         f_best = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
-        i_func_eval_tot = 0;
+        i_func_eval = 0;
         int budget[2] = {0, 0};
         // <-
 
@@ -320,7 +320,7 @@ namespace CMAES {
             std::cout << " " << params_best_unscaled[i] << " ";
         std::cout << std::endl;
         // <-
-        return Solution{params_best_unscaled, f_best};
+        return Solution{params_best_unscaled, f_best, i_func_eval};
 
     }
 

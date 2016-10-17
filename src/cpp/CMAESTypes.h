@@ -56,6 +56,7 @@ struct Matrix {
 struct Solution {
     dvec params;
     double f;
+    int i_func_evaluations;
 };
 
 typedef Matrix<double> dmat;

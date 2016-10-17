@@ -22,19 +22,17 @@ double least_squares(double *v1, double *v2, int n) {
     return sum_least_squares;
 }
 
-void create_synthethic_data(dvec &x, dmat &y_data, int n_data) {
+void create_synthethic_data(dvec &x, dvec &x00, dmat &y_data, int n_data) {
 
     logspace(x.data(), -1, 5, n_data);
-    dvec params0(
-            {5e-7, 1.0, 0.1, 0.5, 0.5, 0.1, 1e-4, 0.5, 0.5, 1e-3, 1.0});
 
     std::complex<double> jc(0, 1);
     for (int i = 0; i < n_data; i++) {
         // L + Rs + RQ1 + RQ2 + RQ3
-        std::complex<double> r = jc * x[i] * params0[0] + params0[1]
-                                 + params0[2] / (1.0 + std::pow<double>(jc * x[i] * params0[3], params0[4]))
-                                 + params0[5] / (1.0 + std::pow<double>(jc * x[i] * params0[6], params0[7]))
-                                 + params0[8] / (1.0 + std::pow<double>(jc * x[i] * params0[9], params0[10]));
+        std::complex<double> r = jc * x[i] * x00[0] + x00[1]
+                                 + x00[2] / (1.0 + std::pow<double>(jc * x[i] * x00[3], x00[4]))
+                                 + x00[5] / (1.0 + std::pow<double>(jc * x[i] * x00[6], x00[7]))
+                                 + x00[8] / (1.0 + std::pow<double>(jc * x[i] * x00[9], x00[10]));
         y_data(i, 0) = r.real();
         y_data(i, 1) = r.imag();
     }
@@ -48,14 +46,19 @@ int main(int argc, char *argv[]) {
     dvec u;
     dmat z_data, z_model;
     u.resize(n_data);
+    dvec x00({4.69624e-6, 3.0407, 1.01319, 0.00820486, 0.369616, 1.0105, 0.00187691, 0.681281, 0.875321, 0.0113654,
+              0.873393});
     z_data.reserve_and_resize(n_data, n_dim);
     z_model.reserve_and_resize(n_data, n_dim);
-    create_synthethic_data(u, z_data, n_data);
+    create_synthethic_data(u, x00, z_data, n_data);
     // <-
 
     CMAES::Engine cmaes;
-    dvec x0({1.0e-05, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
-
+    dvec x0(11);
+    for (int i = 0; i < 11; i++) {
+        double h1 = 2;
+        x0[i] = x00[i] * (i % 2 == 0 ? h1 : 1.0 / h1);
+    }
     // -> evaluation function
     auto evaluate = [&](dvec &params, int n_params) {
         std::complex<double> j(0, 1);
@@ -91,10 +94,11 @@ int main(int argc, char *argv[]) {
     // <-
 
 
-    double sigma0 = 1;
-    int seed = 999;
+    double sigma0 = 5;
+    int seed = 42;
     int n_params = 11;
     int n_restarts = 10;
     Solution sol = cmaes.fmin(x0, n_params, sigma0, n_restarts, seed, cost_func, transform_scale_shift);
+    std::cout << "f_min: " << sol.f << " i_func_eval: " << sol.i_func_evaluations << std::endl;
     return 0;
 }
