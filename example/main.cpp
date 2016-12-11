@@ -90,6 +90,6 @@ int main(int argc, char *argv[]) {
     CMAES::Engine cmaes;
     dvec x0({1.0e-05, 1.0, 0.1, 1e-4, 1.0, 0.1, 1e-3, 1.0, 1e-2, 1e-1, 1.0});
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x0, 11, sigma0, 10, 42, cost_func, transform_scale_shift);
+    Solution sol = cmaes.fmin(x0, 11, sigma0, 10, 9999, cost_func, transform_scale_shift);
     return 0;
 }

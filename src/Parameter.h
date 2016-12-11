@@ -1,5 +1,4 @@
-#ifndef CMAES_PARAMETERS_H
-#define CMAES_PARAMETERS_H
+#pragma once
 
 #include "CMAESTypes.h"
 
@@ -52,5 +51,3 @@ namespace CMAES {
         bool h_sig; // <- Heaviside-function that can stall p_c.
     };
 }
-
-#endif

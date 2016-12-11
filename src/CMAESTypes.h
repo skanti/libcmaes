@@ -1,5 +1,4 @@
-#ifndef CMAES_TYPES_H
-#define CMAES_TYPES_H
+#pragma once
 
 #include <vector>
 #include "AlignedAllocator.h"
@@ -59,6 +58,3 @@ struct Solution {
 };
 
 typedef Matrix<double> dmat;
-
-
-#endif

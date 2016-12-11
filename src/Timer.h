@@ -1,7 +1,6 @@
-#ifndef TIMER_H
-#define TIMER_H
+#pragma once
 
-#include<chrono>
+#include <chrono>
 
 typedef std::chrono::high_resolution_clock hclock;
 
@@ -25,5 +24,3 @@ private:
 };
 
 std::chrono::time_point<hclock> Timer::start_time, Timer::end_time;
-
-#endif

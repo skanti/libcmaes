@@ -1,5 +1,4 @@
-#ifndef CMAES_MATHKERNELS_H
-#define CMAES_MATHKERNELS_H
+#pragma once
 
 #include "mkl.h"
 
@@ -53,5 +52,3 @@ namespace CMAES {
         static void vdmul(double *x, double *y, double *z, int n);
     };
 }
-
-#endif
