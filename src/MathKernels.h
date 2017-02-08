@@ -1,10 +1,9 @@
 #pragma once
 
-#include "mkl.h"
 
 namespace CMAES {
     struct MathKernels {
-
+        /*
         static void init_random_number_generator(VSLStreamStatePtr *stream, const unsigned int seed);
 
         static void sample_random_vars_gaussian(VSLStreamStatePtr *stream, int n, double *f, double a, double b);
@@ -50,5 +49,6 @@ namespace CMAES {
         static double dnrm2(int n, double *x);
 
         static void vdmul(double *x, double *y, double *z, int n);
+        */
     };
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CMAESTypes.h"
+#include "Common.h"
 
 namespace CMAES {
     struct Parameter {

@@ -252,8 +252,7 @@ namespace CMAES {
 #endif
     }
 
-    Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed,
-                          std::function<double(dvec &, dvec &, int)> costf, tss_type tssf) {
+    Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, std::function<double(dvec &, dvec &, int)> costf, tss_type tssf) {
         cost_func = costf;
         transform_scale_shift = tssf;
         // -> settings

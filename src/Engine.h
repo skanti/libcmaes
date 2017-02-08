@@ -1,9 +1,8 @@
 #pragma once
 
-#include "CMAESTypes.h"
-#include "Parameter.h"
-#include "mkl_vsl.h"
 #include <functional>
+#include "Common.h"
+#include "Parameter.h"
 
 namespace CMAES {
     class Engine {
@@ -57,8 +56,6 @@ namespace CMAES {
         dvec x_best; // <- current best estimate.
         double f_best; // <- cost of x_best.
         int i_func_eval_tot; // <- function evaluation counter.
-
-        VSLStreamStatePtr rnd_stream; // <- random number stream
 
         const int n_iteration_max = 5000; // <- max number of function evals.
         const int n_interval_print = 100; // <- print (cout) interval.
