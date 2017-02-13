@@ -31,21 +31,21 @@ namespace CMAES {
         // <-
 
         //-> NxM matrices
-        x_offsprings.reserve(n_params, n_offsprings_reserve);
-        y_offsprings.reserve(n_params, n_offsprings_reserve);
-        y_offsprings_ranked.reserve(n_params, n_offsprings_reserve);
-        z_offsprings.reserve(n_params, n_offsprings_reserve);
+        x_offsprings.resize(n_params, n_offsprings_reserve);
+        y_offsprings.resize(n_params, n_offsprings_reserve);
+        y_offsprings_ranked.resize(n_params, n_offsprings_reserve);
+        z_offsprings.resize(n_params, n_offsprings_reserve);
         // <-
 
         // -> NxK matrices
-        x_parents_ranked.reserve(n_params, n_parents_reserve);
+        x_parents_ranked.resize(n_params, n_parents_reserve);
         // <-
 
         // -> NxN matrices
-        C.reserve_and_resize(n_params, n_params);
-        C_invsqrt.reserve_and_resize(n_params, n_params);
-        B.reserve_and_resize(n_params, n_params);
-        D.reserve_and_resize(n_params, n_params);
+        C.resize(n_params, n_params);
+        C_invsqrt.resize(n_params, n_params);
+        B.resize(n_params, n_params);
+        D.resize(n_params, n_params);
         // <-
     }
 
@@ -83,17 +83,6 @@ namespace CMAES {
         std::fill(p_c.data(), p_c.data() + n_params, 0.0);
         // <-
 
-        // -> NxM matrices
-        x_offsprings.resize(n_params, n_offsprings);
-        y_offsprings.resize(n_params, n_offsprings);
-        y_offsprings_ranked.resize(n_params, n_offsprings);
-        z_offsprings.resize(n_params, n_offsprings);
-        // <-
-
-        // -> NxK matrices
-        x_parents_ranked.resize(n_params, n_parents);
-        // <-
-
         // -> learning variables
         c_s = (n_mu_eff + 2.0) / (n_params + n_mu_eff + 5.0);
         c_c = (4.0 + n_mu_eff / n_params) / (n_params + 4.0 + 2.0 * n_mu_eff / n_params);
@@ -123,10 +112,10 @@ namespace CMAES {
         sigma = sigma_; // <- sigma
 
         // -> NxN matrices
-        C.eye();
-        C_invsqrt.eye();
-        B.eye();
-        D.eye();
+        C.setIdentity();
+        C_invsqrt.setIdentity();
+        B.setIdentity();
+        D.setIdentity();
         // <-
 
     }

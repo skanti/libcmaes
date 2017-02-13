@@ -3,13 +3,7 @@
 
 namespace CMAES {
     struct MathKernels {
-        /*
-        static void init_random_number_generator(VSLStreamStatePtr *stream, const unsigned int seed);
-
-        static void sample_random_vars_gaussian(VSLStreamStatePtr *stream, int n, double *f, double a, double b);
-
-        static void sample_random_vars_uniform(VSLStreamStatePtr *stream, int n, double *f, double a, double b);
-
+        
         static void mean_vector(double *a, int n_rows_a, int n_cols_a, int ld_a, double *v, double *w);
 
         static void dgemm(double *a, int is_a_trans, double *b, int is_b_trans, double *c, int m, int n, int k,
@@ -49,6 +43,6 @@ namespace CMAES {
         static double dnrm2(int n, double *x);
 
         static void vdmul(double *x, double *y, double *z, int n);
-        */
+        
     };
 }

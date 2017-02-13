@@ -7,7 +7,7 @@
 namespace CMAES {
     class Engine {
     public:
-        typedef void (*tss_type)(double *, double *, double *, int);
+        typedef void (*tss_type)(Eigen::Ref<dvec>, dvec &, dvec &, int);
 
         typedef std::function<double(dvec &, dvec &, int)> cost_type;
 
@@ -43,14 +43,25 @@ namespace CMAES {
 
         void optimize();
 
-        double cost(double *params);
+        double cost(Eigen::Ref<dvec> params);
 
         Parameter era; // <- instance of Parameter class.
+
+        Eigen::EigenSolver<dmat> eigensolver;
+
+        // -> random 
+        std::mt19937 mt;
+        std::normal_distribution<double> dist_normal_real;
+        std::uniform_real_distribution<double> dist_uniform_real;        
+        // <-
+
 
         dvec x0; // <- user provided guess.
         dvec x_typical; // <- typical order.
         double sigma0; // <- step-size.
         int n_params; // <- dimensionality of x.
+        int n_offsprings;
+        int n_parents;
 
         int i_run; // <- restart counter.
         dvec x_best; // <- current best estimate.

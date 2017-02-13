@@ -13,7 +13,8 @@ typedef Eigen::Matrix<int32_t, Eigen::Dynamic, 1> ivec;
 
 typedef Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> dmat;
 
-namespace internal {
+/*
+namespace {
     struct scalar_normal_dist_op {
         static std::mt19937 mt;
         mutable std::normal_distribution<double> dist_normal; 
@@ -40,10 +41,10 @@ class EigenMultivariateNormal {
     dmat covar;
     dmat transform;
     dvec mean;
-    internal::scalar_normal_dist_op randN; // Gaussian functor
+    scalar_normal_dist_op randN; // Gaussian functor
     
   public:
-    EigenMultivariateNormal(const dvec& mean_, const dmat& covar_, const uint64_t &seed) {
+    void init(const dvec& mean_, const dmat& covar_, const uint64_t &seed) {
         randN.seed(seed);
         mean = mean_;
         covar = covar_;
@@ -56,7 +57,7 @@ class EigenMultivariateNormal {
         return (transform * Eigen::Matrix<double, Eigen::Dynamic,-1>::NullaryExpr(covar.rows(), nn, randN)).colwise() + mean;
     }
 };
-
+*/
 
 struct Solution {
     dvec params;

@@ -1,9 +1,6 @@
 #include "Engine.h"
 #include <fstream>
-#include <complex>
-#include "MathKernels.h"
 #include <iostream>
-#include <iomanip>
 #include "omp.h"
 
 #define N_DIMENSION 3
@@ -51,31 +48,18 @@ int main(int argc, char *argv[]) {
     // <-
 
     // -> transform-scale-shift function
-    CMAES::Engine::tss_type transform_scale_shift = [](double *x, double *x_typical, double *x_tss, int n_params) {
+    CMAES::Engine::tss_type transform_scale_shift = [](Eigen::Ref<dvec> x, dvec &x_typical, dvec &x_tss, int n_params) {
         for (int i = 0; i < n_params; i++) {
-            x_tss[i] = std::abs(x[i] * x_typical[i]);
+            x_tss[i] = std::abs(x[i]);
         }
     };
     // <-
 
-    dvec mean(4);
-    mean.setZero();
-
-    dmat covar(4, 4);
-    covar.setIdentity();
-
-    EigenMultivariateNormal gaussian(mean, covar, 999);
-    auto a = gaussian.samples(5);
-
-    std::cout << a << std::endl;
-
-    /*
     CMAES::Engine cmaes;
     dvec x0(N_DIMENSION);
     x0.setZero();
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x0, N_DIMENSION, sigma0, 10, 9999, cost_func, transform_scale_shift);
-    */
+    Solution sol = cmaes.fmin(x0, N_DIMENSION, sigma0, 0, 9999, cost_func, transform_scale_shift);
 
     return 0;
 }
