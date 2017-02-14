@@ -283,9 +283,8 @@ namespace CMAES {
         print(x_best);
         dvec params_best_unscaled(n_params);
         transform_scale_shift(x_best, x_typical, params_best_unscaled, n_params);
-        std::cout << "f_best: " << f_best << std::endl;
-        std::cout << "params:";
-        std::cout << params_best_unscaled.transpose() << std::endl;
+        std::cout << "\nf_best: " << f_best << std::endl;
+        std::cout << "params: " << params_best_unscaled.transpose() << std::endl;
         // <-
         return Solution{params_best_unscaled, f_best};
 

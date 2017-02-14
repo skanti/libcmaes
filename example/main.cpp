@@ -3,22 +3,21 @@
 #include <iostream>
 #include "omp.h"
 
-#define N_DIMENSION 3
+#define N_DIMENSION 5
 
 
 void create_synthethic_data(dvec &u, dvec &y_data, int n_data) {
 
-    std::iota(&u[0], &u[0] + n_data, 0.0);
+    std::iota(&u[0], &u[0] + n_data, 1.0);
     dvec params0(N_DIMENSION);
-    params0.setOnes();
+    params0.setConstant(2.0);
 
     for (int i = 0; i < n_data; i++) 
-        y_data(i) = params0[0] + params0[1]*u[i] + params0[2]*u[i]*u[i];
+        y_data(i) = params0[0] + params0[1]*u[i] + params0[2]*u[i]*u[i] - std::exp(-params0[3]*u[i]) + std::cos(u[i]*params0[4]);
     
 }
 
 int main(int argc, char *argv[]) {
-    std::cout << "***********************************************************" << std::endl;
     //-> create and fill synthetic data
     int n_data = 50;
     dvec u;
@@ -26,32 +25,21 @@ int main(int argc, char *argv[]) {
     u.resize(n_data);
     y_data.resize(n_data);
     y_model.resize(n_data);
-
     create_synthethic_data(u, y_data, n_data);
-    // <-
-
-    
-    // -> evaluation function
-    auto evaluate = [&](dvec &params, int n_params) {
-        for (int i = 0; i < n_data; i++) 
-            y_model[i] = params[0] + params[1]*u[i] + params[2]*u[i]*u[i];
-    };
     // <-
 
     // -> cost function
     CMAES::Engine::cost_type cost_func = [&](dvec &params, dvec &params_typical, int n_params) {
-        
-        evaluate(params, n_params);
-
+        for (int i = 0; i < n_data; i++) 
+            y_model(i) = params[0] + params[1]*u[i] + params[2]*u[i]*u[i] - std::exp(-params[3]*u[i]) + std::cos(u[i]*params[4]);
         return (y_data - y_model).squaredNorm();
     };
     // <-
 
     // -> transform-scale-shift function
     CMAES::Engine::tss_type transform_scale_shift = [](Eigen::Ref<dvec> x, dvec &x_typical, dvec &x_tss, int n_params) {
-        for (int i = 0; i < n_params; i++) {
+        for (int i = 0; i < n_params; i++)
             x_tss[i] = std::abs(x[i]);
-        }
     };
     // <-
 
@@ -59,7 +47,7 @@ int main(int argc, char *argv[]) {
     dvec x0(N_DIMENSION);
     x0.setZero();
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x0, N_DIMENSION, sigma0, 3, 9999, cost_func, transform_scale_shift);
+    Solution sol = cmaes.fmin(x0, N_DIMENSION, sigma0, 10, 9999, cost_func, transform_scale_shift);
 
     return 0;
 }

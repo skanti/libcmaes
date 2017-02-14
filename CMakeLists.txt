@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 project(cmaes CXX)
 
-set(CMAKE_CXX_FLAGS "-Wall -std=c++14 -fopenmp -DNDEBUG")
+set(CMAKE_CXX_FLAGS "-Wall -O3 -std=c++14 -fopenmp -DNDEBUG")
 
 set(CMAKE_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/build")
