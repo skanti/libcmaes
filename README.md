@@ -1,22 +1,19 @@
 # libcmaes
 
-A slim and Intel-MKL optimized C++ BIPOP-aCMA-ES optimization library. 
+A C++ BIPOP-aCMA-ES library (with `Eigen` as Math Library). 
 
 ## Description
 
-This is a C++11/Intel MKL implementation of the BIPOP-aCMA-ES algorithm. The algorithm is referenced 
+This is a C++11/Eigen implementation of the BIPOP-aCMA-ES algorithm. The algorithm is referenced 
 from "The CMA Evolution Strategy: A Tutorial, Nikolaus Hansen, 2016". Apparently, he has a new setting for the default 
 negative weights (since 2016).
 
 ## Purpose
 
-The compile time is much faster than other templated CMA-ES libraries. Consider this for academic purposes. You can manipulate/modify the source code and run your own flavor. Also the source code is rather easy to understand because it follows a linear execution path (i.e. not much branching).
-
-It takes 5 minutes to go through the code and understand the linear computational path. 
-Other templated libraries require hours (if not days) to really unravel what goes behind the curtain.
+The compile time is reduced for the purpose of quick editing and running own flavors of CMA-ES (or inspection). The source code is short and follows a linear execution path (i.e. little branching).
 
 ## Performance and Optimization
-The heavy duty work is mostly done by Intel MKL BLAS level 2 and BLAS level 3. One eigenvalue/eigenvector decomposition for real symmetric matrices is done by Intel MKL LAPACK module ```dsyevd``` - which uses the 'divide-and-conquer' algorithm that computes different results than the standard method but it is faster for larger matrices.
+The heavy duty work is mostly done by `Eigen` BLAS level 2 and BLAS level 3. One eigenvalue/eigenvector decomposition for real symmetric matrices is done by a LAPACK module ```dsyevd``` - which uses the 'divide-and-conquer' algorithm that computes different results than the standard method but it is faster for larger matrices.
 
 Here is a little info about critical methods in the main thread:
 
@@ -47,10 +44,10 @@ Here is a little info about critical methods in the main thread:
 
 
 ## How-To install
-Have a look at the CMake file. Have special care with the linking of the Intel-MKL libraries. You may specify your ```LD_LIBRARY_PATH``` to look for shared libraries.
+Have a look at the CMake file.
 
 ## Dependencies
-- Intel MKL
+- Eigen
 
 ## Contact
 Feel free to contact me if you have questions or just want to chat about it.
