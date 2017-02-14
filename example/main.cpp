@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     dvec x0(N_DIMENSION);
     x0.setZero();
     double sigma0 = 1;
-    Solution sol = cmaes.fmin(x0, N_DIMENSION, sigma0, 0, 9999, cost_func, transform_scale_shift);
+    Solution sol = cmaes.fmin(x0, N_DIMENSION, sigma0, 3, 9999, cost_func, transform_scale_shift);
 
     return 0;
 }

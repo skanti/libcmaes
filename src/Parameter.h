@@ -6,10 +6,10 @@ namespace CMAES {
     struct Parameter {
 
         /* reserves memory for arrays and matrices. */
-        void reserve(int n_offsprings_reserve_, int n_params_);
+        void reserve(int n_offsprings_reserve_, int n_parents_reserve_, int n_params_);
 
         /* reinitializes variables for new generation. */
-        void reinit(int n_offsprings_, int n_params_, dvec &x_mean_, double &sigma_);
+        void reinit(int n_offsprings_, int n_parents_, int n_params_, dvec &x_mean_, double &sigma_);
 
         int n_offsprings; // <- number of offsprings in a generation.
         int n_offsprings_reserve; // <- size to reserve for containers.

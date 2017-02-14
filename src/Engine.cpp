@@ -118,10 +118,6 @@ namespace CMAES {
                 era.w_var[i] = era.w[i]*era.n_params/(era.C_invsqrt*era.y_offsprings_ranked.col(i)).squaredNorm();
             }
         }
-
-
-        std::cout << era.w_var << std::endl;
-        exit(0);
     }
 
     void Engine::update_cov_matrix() {
@@ -131,6 +127,7 @@ namespace CMAES {
         double w_sum = era.w.block(0, 0, n_offsprings, 1).sum();
         era.C = (1.0 + era.c_1*h1 - era.c_1 - era.c_mu*w_sum)*era.C + era.c_1*era.p_c*era.p_c.transpose()
               + era.c_mu*(era.y_offsprings_ranked.block(0, 0, n_params, n_offsprings)*W*era.y_offsprings_ranked.block(0, 0, n_params, n_offsprings).transpose());
+
     }
 
     void Engine::update_stepsize() {
@@ -140,9 +137,10 @@ namespace CMAES {
     void Engine::eigendecomposition() {
         eigensolver.compute(era.C);
         era.eigvals_C = eigensolver.eigenvalues().real(); 
-        era.D = era.eigvals_C.asDiagonal();
+        era.D = era.eigvals_C.cwiseSqrt().asDiagonal();
         era.B = dmat(eigensolver.eigenvectors().real());
-        era.C_invsqrt = era.B*era.D*era.B.transpose();
+        dmat D_inv = era.eigvals_C.cwiseSqrt().cwiseInverse().asDiagonal();
+        era.C_invsqrt = era.B*D_inv*era.B.transpose();
     }
 
     double Engine::cost(Eigen::Ref<dvec> params) {
@@ -244,8 +242,8 @@ namespace CMAES {
         n_offsprings = n_offsprings0;
         n_parents = n_offsprings/2;
         int n_offsprings_max = n_offsprings0*(1 << n_restarts);
-        era.reserve(n_offsprings_max, n_params);
-        era.reinit(n_offsprings, n_params, x0, sigma0);
+        era.reserve(n_offsprings_max, n_offsprings_max/2, n_params);
+        era.reinit(n_offsprings, n_parents, n_params, x0, sigma0);
         x_best = x0;
         double f_cand = cost(x_best);
         f_best = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
@@ -257,30 +255,28 @@ namespace CMAES {
         optimize();
         budget[0] += era.i_func_eval;
         // <-
-        /*
+
         // -> restarts
-        should_stop_optimization = false;
-        for (i_run = 1; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
+        for (i_run = 1, should_stop_optimization = 0; i_run < n_restarts + 1 && !should_stop_optimization; i_run++) {
             int n_regime1 = n_offsprings0*(1 << i_run);
             while (budget[0] > budget[1] && !should_stop_optimization) {
-                double u[2];
-                MathKernels::sample_random_vars_uniform(&rnd_stream, 2, u, 0.0, 1.0);
-                double ur2 = std::pow(u[0], 2.0);
-                int n_offsprings = (int) (n_offsprings0*std::pow(0.5*n_regime1 / n_offsprings0, ur2));
-                double us = u[1];
-                double sigma_regime2 = sigma0*2.0*std::pow(10, -2.0*us);
-                era.reinit(n_offsprings, n_params, x_best, sigma_regime2);
+                double ur2 = std::pow(dist_uniform_real(mt), 2.0);
+                n_offsprings = (int) (n_offsprings0*std::pow(0.5*n_regime1 / n_offsprings0, ur2));
+                n_parents = n_offsprings/2;
+                double sigma_regime2 = sigma0*2.0*std::pow(10, -2.0*dist_uniform_real(mt));
+                era.reinit(n_offsprings, n_parents, n_params, x_best, sigma_regime2);
                 optimize();
                 budget[1] += era.i_func_eval;
             }
-            int n_offsprings = n_regime1;
-            era.reinit(n_offsprings, n_params, x0, sigma0);
+            n_offsprings = n_regime1;
+            n_parents = n_offsprings/2;
+            era.reinit(n_offsprings, n_parents, n_params, x0, sigma0);
             optimize();
             budget[0] += era.i_func_eval;
             std::cout << "i_run: " << i_run << " / " << n_restarts << " completed. f_best: " << f_best << std::endl;
         }
         // <-
-        */
+        
 
         // -> print final result
         cost(x_best);
