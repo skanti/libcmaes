@@ -1,0 +1,10 @@
+# hidden files
+.*
+
+# folders
+build
+cmake 
+
+# exception
+!.gitignore
+
