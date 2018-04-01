@@ -53,7 +53,7 @@ namespace CMAES {
     void Engine::rank_and_sort() {
         // -> rank by cost-function
         for (int i = 0; i < era.n_offsprings; i++) {
-            double f_cand = cost(era.x_offsprings.col(i));
+            double f_cand = fcost(era.x_offsprings.col(i).data(), era.n_params);
             era.f_offsprings[i] = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
         }
         
@@ -79,7 +79,7 @@ namespace CMAES {
     }
 
     void Engine::update_best() {
-        double f_cand = cost(era.x_parents_ranked.col(0));
+        double f_cand = fcost(era.x_parents_ranked.col(0).data(), era.n_params);
         if (!std::isnan(f_cand) && f_cand < f_best) {
             x_best = era.x_parents_ranked.col(0);
             f_best = f_cand;
@@ -141,11 +141,6 @@ namespace CMAES {
         era.B = dmat(eigensolver.eigenvectors().real());
         dmat D_inv = era.eigvals_C.cwiseSqrt().cwiseInverse().asDiagonal();
         era.C_invsqrt = era.B*D_inv*era.B.transpose();
-    }
-
-    double Engine::cost(Eigen::Ref<dvec> params) {
-        transform_scale_shift(params, x_typical, era.x_tss, n_params);
-        return cost_func(era.x_tss, x_typical, n_params);
     }
 
     void Engine::stopping_criteria() {
@@ -220,9 +215,9 @@ namespace CMAES {
 #endif
     }
 
-    Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, std::function<double(dvec &, dvec &, int)> costf, tss_type tssf) {
-        cost_func = costf;
-        transform_scale_shift = tssf;
+	Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type fcost0, transform_type ftransform0) {
+        fcost = fcost0;
+        ftransform = ftransform0;
         mt.seed(seed);
 
         // -> settings
@@ -233,7 +228,6 @@ namespace CMAES {
         
         // -> first guess
         x0 = x0_;
-        x_typical = x0_;
         sigma0 = sigma0_;
         // <-
 
@@ -245,7 +239,7 @@ namespace CMAES {
         era.reserve(n_offsprings_max, n_offsprings_max/2, n_params);
         era.reinit(n_offsprings, n_parents, n_params, x0, sigma0);
         x_best = x0;
-        double f_cand = cost(x_best);
+        double f_cand = fcost(x_best.data(), n_params);
         f_best = std::isnan(f_cand) ? std::numeric_limits<double>::infinity() : f_cand;
         i_func_eval_tot = 0;
         int budget[2] = {0, 0};
@@ -279,14 +273,11 @@ namespace CMAES {
         
 
         // -> print final result
-        cost(x_best);
+        fcost(x_best.data(), n_params);
         print(x_best);
-        dvec params_best_unscaled(n_params);
-        transform_scale_shift(x_best, x_typical, params_best_unscaled, n_params);
-        std::cout << "\nf_best: " << f_best << std::endl;
-        std::cout << "params: " << params_best_unscaled.transpose() << std::endl;
+        ftransform(x_best.data(), n_params);
         // <-
-        return Solution{params_best_unscaled, f_best};
+        return Solution{x_best, f_best};
 
     }
 

@@ -28,9 +28,8 @@ set(SOURCE_FILES_H
 
 include_directories(./src)
 
-#add_library(cmaes ${SOURCE_FILES_CPP} ${SOURCE_FILES_H})
-#target_link_libraries(cmaes)
-include_directories("/usr/local/lib/")
+add_library(cmaes ${SOURCE_FILES_CPP} ${SOURCE_FILES_H})
+target_link_libraries(cmaes)
 
 add_executable(cmaes_example ./example/point_registration.cpp)
 target_link_libraries(cmaes_example cmaes)

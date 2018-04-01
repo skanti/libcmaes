@@ -5,19 +5,18 @@
 #include "Parameter.h"
 
 namespace CMAES {
-    class Engine {
+	typedef std::function<double(const double *, int)> cost_type;
+	typedef std::function<void(double *, int)> transform_type;
+    
+	class Engine {
     public:
-        typedef void (*tss_type)(Eigen::Ref<dvec>, dvec &, dvec &, int);
 
-        typedef std::function<double(dvec &, dvec &, int)> cost_type;
-
-        Solution
-        fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type costf, tss_type tssf);
+        Solution fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type costf, transform_type ftransform);
 
     private:
-        tss_type transform_scale_shift;
+        transform_type ftransform;
 
-        cost_type cost_func;
+        cost_type fcost;
 
         void sample_offsprings();
 
