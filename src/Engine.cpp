@@ -215,9 +215,8 @@ namespace CMAES {
 #endif
     }
 
-	Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type fcost0, transform_type ftransform0) {
+	Solution Engine::fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type fcost0) {
         fcost = fcost0;
-        ftransform = ftransform0;
         mt.seed(seed);
 
         // -> settings
@@ -275,7 +274,6 @@ namespace CMAES {
         // -> print final result
         fcost(x_best.data(), n_params);
         print(x_best);
-        ftransform(x_best.data(), n_params);
         // <-
         return Solution{x_best, f_best};
 

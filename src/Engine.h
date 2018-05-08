@@ -5,13 +5,13 @@
 #include "Parameter.h"
 
 namespace CMAES {
-	typedef std::function<double(const double *, int)> cost_type;
+	typedef std::function<double(double *, int)> cost_type;
 	typedef std::function<void(double *, int)> transform_type;
     
 	class Engine {
     public:
 
-        Solution fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type costf, transform_type ftransform);
+        Solution fmin(dvec &x0_, int n_params_, double sigma0_, int n_restarts, int seed, cost_type fcost);
 
     private:
         transform_type ftransform;
@@ -56,7 +56,6 @@ namespace CMAES {
 
 
         dvec x0; // <- user provided guess.
-        dvec x_typical; // <- typical order.
         double sigma0; // <- step-size.
         int n_params; // <- dimensionality of x.
         int n_offsprings;
